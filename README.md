@@ -2,7 +2,7 @@
 
 A browser tool that calculates the compressibility factor Z, molar volume and density of pure gases and liquids with eight methods, and tells you which answer to trust and why.
 
-**Live page:** https://<your-github-username>.github.io/pvt-solver/
+**Live page:** https://krshn-a.github.io/pvt-solver/ 
 
 ## What it does
 
@@ -17,13 +17,6 @@ A browser tool that calculates the compressibility factor Z, molar volume and de
 ## Use it
 
 Open `index.html` in any modern browser. No installation and no server; nothing is uploaded.
-
-## Put it online (GitHub Pages)
-
-1. On GitHub, create a new **public** repository named `pvt-solver`.
-2. *Add file → Upload files*, drop in `index.html`, and click *Commit changes*.
-3. *Settings → Pages*: Source = *Deploy from a branch*, Branch = `main`, folder = `/ (root)`, then *Save*.
-4. After about a minute the site is live at `https://<your-github-username>.github.io/pvt-solver/`.
 
 ## Accuracy checks
 
