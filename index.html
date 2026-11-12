@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Compressibility factor, molar volume and density of pure gases and liquids by 8 methods (ideal gas, virial, Lee–Kesler, cubic equations of state, Rackett), with phase diagnosis, a recommended method and warnings.">
+<meta name="description" content="Compressibility factor, molar volume and density of pure gases and liquids by 8 methods (ideal gas, virial, Lee–Kesler, cubic equations of state, Rackett), with phase diagnosis, a recommended method and warnings, an interactive P–T phase map, plus AI Check: a thermodynamics fact-checker for chatbot answers.">
 <title>Pure-Fluid PVT Solver</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -263,6 +263,197 @@ details.ext[open] summary { margin-bottom: 4px; }
 .why .whylist { margin: 6px 0 0; padding-left: 18px; }
 .why .whylist li { margin: 3px 0; }
 
+/* ---------------- AI Check ---------------- */
+.layout.wide { grid-template-columns: minmax(0, 1fr); }
+.layout.wide .rail { display: none; }
+.ai-intro h2 { margin-bottom: 6px; }
+.ai-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; margin-top: 12px; }
+@media (max-width: 760px) { .ai-grid { grid-template-columns: 1fr; } }
+.ai-input textarea { width: 100%; margin-top: 4px; font: inherit; font-size: 0.92rem; line-height: 1.45; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); resize: vertical; }
+.ai-input textarea:focus, .ai-read input:focus, .ai-read select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ai-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+.ai-actions select { padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: 0.86rem; max-width: 100%; }
+.ai-quiz { border: 1px dashed var(--frame); border-radius: var(--radius); padding: 10px 12px; background: var(--surface-2); }
+.ai-quiz .hint { margin: 2px 0 8px; }
+.ai-q { font-weight: 600; font-size: 0.98rem; line-height: 1.4; }
+.ai-catch { margin-top: 6px; font-size: 0.86rem; color: var(--ink-2); }
+.ai-catch summary { cursor: pointer; color: var(--accent); }
+.ai-read { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 8px 0; }
+.ai-read label { display: flex; flex-direction: column; gap: 3px; font-size: 0.8rem; color: var(--ink-2); font-weight: 600; }
+.ai-read select, .ai-read input { padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-weight: 400; font-size: 0.92rem; }
+.ai-read input { width: 120px; font-family: var(--font-mono); }
+.ai-in { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; color: var(--ink-2); }
+.ai-num { display: inline-block; font-family: var(--font-mono); font-size: 0.82rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin: 1px 0; color: var(--ink); }
+.ai-verdict { border-left: 5px solid var(--line); }
+.ai-verdict.tone-good { border-left-color: var(--good); }
+.ai-verdict.tone-warn { border-left-color: var(--warn); }
+.ai-verdict.tone-bad { border-left-color: var(--bad); }
+.ai-head { display: flex; gap: 12px; align-items: flex-start; }
+.ai-head h2 { font-size: 1.35rem; line-height: 1.25; }
+.ai-icon { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; font-weight: 700; }
+.ai-icon.good { background: var(--good-bg); color: var(--good-ink); } .ai-icon.warn { background: var(--warn-bg); color: var(--warn-ink); } .ai-icon.bad { background: var(--bad-bg); color: var(--bad-ink); }
+.ai-kicker { font-size: 0.78rem; color: var(--ink-3); letter-spacing: 0.02em; margin-bottom: 2px; }
+.ai-vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.ai-vs > div { background: var(--surface-2); border-radius: var(--radius); padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.ai-vs b { font-size: 1rem; }
+.ai-strip { margin: 6px 0 4px; }
+.ai-strip svg { width: 100%; height: auto; display: block; }
+.ai-strip .ax { stroke: var(--frame); stroke-width: 1.5; }
+.ai-strip .tk { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 2; }
+.ai-strip .tl { font: 600 11px var(--font-body); fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.ai-strip .bandr { fill: var(--good-bg); stroke: var(--good); stroke-width: 1; }
+.ai-strip .bk { fill: var(--good); stroke: var(--surface); stroke-width: 1.5; }
+.ai-strip .mk.bad { fill: var(--bad); } .ai-strip .mk.warn { fill: var(--warn); } .ai-strip .mk.good { fill: var(--good); }
+.ai-strip .ml { font: 700 12px var(--font-body); }
+.ai-strip .ml.bad { fill: var(--bad-ink); } .ai-strip .ml.warn { fill: var(--warn-ink); } .ai-strip .ml.good { fill: var(--good-ink); }
+.ai-verdict p { margin: 6px 0; }
+.vpill { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.vpill.good { background: var(--good-bg); color: var(--good-ink); } .vpill.warn { background: var(--warn-bg); color: var(--warn-ink); } .vpill.bad { background: var(--bad-bg); color: var(--bad-ink); }
+table.ai-claims { width: 100%; }
+table.ai-claims td, table.ai-claims th { text-align: left !important; }
+table.ai-claims tbody tr { cursor: pointer; }
+table.ai-claims tbody tr.sel td { background: var(--accent-soft); }
+.ai-fix { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.ai-fix summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.ai-fix p { background: var(--surface-2); border-radius: var(--radius); padding: 8px 10px; font-size: 0.9rem; }
+.ai-actions select { width: auto; flex: 0 1 auto; }
+
+/* ---------------- Phase map ---------------- */
+.pm-card { --pm-liq: color-mix(in srgb, var(--s1) 62%, var(--surface)); --pm-vap: color-mix(in srgb, var(--s4) 58%, var(--surface)); --pm-gas: color-mix(in srgb, var(--s4) 30%, var(--surface)); --pm-sc: color-mix(in srgb, var(--s7) 60%, var(--surface)); }
+.pm-head { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: flex-end; justify-content: space-between; margin-bottom: 10px; }
+.pm-head h2 { margin-bottom: 4px; }
+.pm-head p { margin: 0; max-width: 78ch; }
+.pm-fluid { display: grid; gap: 3px; }
+.pm-fluid select { min-width: 230px; width: auto; }
+.pm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .pm-grid { grid-template-columns: 1fr; } }
+.pm-box { position: relative; }
+.pm-svg { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair; font-family: var(--font-body); }
+.pm-svg.is-dragging, .pm-svg.is-dragging .pm-mk-g { cursor: grabbing; }
+.pm-mk-g { cursor: grab; }
+.pm-r-liq { fill: var(--s1); fill-opacity: 0.14; }
+.pm-r-vap { fill: var(--s4); fill-opacity: 0.11; }
+.pm-r-gas { fill: var(--s4); fill-opacity: 0.05; }
+.pm-r-sc { fill: url(#pmSCg); }
+.pm-sc0 { stop-color: var(--s7); stop-opacity: 0.2; } .pm-sc1 { stop-color: var(--s7); stop-opacity: 0.04; }
+.pm-r-solid { fill: url(#pmHatchS); }
+.pm-hatch-s { stroke: var(--ink-3); stroke-opacity: 0.35; stroke-width: 1; }
+.pm-hatch { stroke: var(--warn); stroke-opacity: 0.45; stroke-width: 1.2; }
+.pm-gl { stroke: var(--grid); stroke-width: 1; }
+.pm-minor { stroke: var(--frame); stroke-width: 1; }
+.pm-frame { fill: none; stroke: var(--frame); }
+.pm-tick { font: 11px var(--font-mono); fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pm-axis { font-size: 12px; fill: var(--ink-2); }
+.pm-small { font-size: 10.5px; fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.pm-atm { stroke: var(--ink-3); stroke-dasharray: 1 3; stroke-width: 1; }
+.pm-rl { font: 600 11px var(--font-body); letter-spacing: 0.14em; fill: var(--ink-3); pointer-events: none; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; stroke-opacity: 0.85; }
+.pm-curve { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.pm-curve-glow { fill: none; stroke: var(--accent); stroke-width: 7; opacity: 0.25; }
+.pm-curve-t { font: italic 600 11px var(--font-body); fill: var(--accent); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.pm-crit-line { stroke: var(--ink-3); stroke-dasharray: 5 4; stroke-width: 1.1; }
+.pm-crit-t { fill: var(--ink-2); font-weight: 600; }
+.pm-cp { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.pm-cp-ring { fill: none; stroke: var(--accent); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; }
+.pm-cp-t { font-weight: 600; fill: var(--accent); }
+.pm-pt { fill: var(--ink-2); stroke: var(--surface); stroke-width: 1.5; }
+.pm-pt.nbp { fill: var(--s1); }
+.pm-nc { fill: url(#pmHatch); stroke: var(--warn); stroke-width: 1; stroke-dasharray: 4 3; }
+.pm-z-ideal { fill: var(--good); fill-opacity: 0.06; }
+.pm-zl-ideal { fill: none; stroke: var(--good); stroke-width: 1.8; stroke-dasharray: 7 4; }
+.pm-z-vir { fill: none; }
+.pm-zl-vir { fill: none; stroke: var(--ok); stroke-width: 1.6; stroke-dasharray: 2 3; }
+.pm-solid-t { fill: var(--ink-3); }
+.pm-cross { stroke: var(--s2); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.75; pointer-events: none; }
+.pm-trail { stroke: var(--s2); stroke-width: 3; stroke-linecap: round; opacity: 0.45; pointer-events: none; }
+.pm-tag rect { fill: var(--s2); }
+.pm-tag text { font: 600 11px var(--font-mono); fill: #fff; font-variant-numeric: tabular-nums; }
+.pm-tag { pointer-events: none; }
+.pm-mk { fill: var(--s2); stroke: var(--surface); stroke-width: 2.5; }
+.pm-halo { fill: var(--s2); opacity: 0.2; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .pm-cp-ring { animation: pm-ring 2.6s ease-out infinite; }
+  .pm-halo { animation: pm-breathe 2.2s ease-in-out infinite; }
+  .pm-meth li { transition: background 0.3s, color 0.3s; }
+}
+@keyframes pm-ring { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(3.2); opacity: 0; } }
+@keyframes pm-breathe { 0%, 100% { transform: scale(0.85); opacity: 0.28; } 50% { transform: scale(1.15); opacity: 0.12; } }
+.pm-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.78rem; color: var(--ink-2); margin-top: 4px; }
+.pm-legend span { display: inline-flex; align-items: center; }
+.pm-legend i { display: inline-block; width: 18px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.pm-lg-curve { height: 3px !important; background: var(--accent); }
+.pm-lg-ideal { background: color-mix(in srgb, var(--good) 14%, transparent); border-top: 2px dashed var(--good); }
+.pm-lg-vir { height: 0 !important; border-top: 2px dotted var(--ok); }
+.pm-lg-nc { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--warn) 50%, transparent) 0 1.5px, transparent 1.5px 5px); border: 1px dashed var(--warn); }
+.pm-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 26px; margin-top: 12px; }
+@media (max-width: 640px) { .pm-sliders { grid-template-columns: 1fr; } }
+.pm-sl-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.pm-sl-top label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+.pm-sl-top output { font-size: 0.88rem; font-weight: 500; color: var(--ink); }
+.pm-rail { position: relative; padding-bottom: 18px; }
+.pm-sl input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 10px; margin: 8px 0 0; border-radius: 999px; background: var(--track, var(--surface-2)); cursor: pointer; }
+.pm-sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--s2); border: 3px solid var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.pm-sl input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--s2); border: 3px solid var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.pm-sl input[type=range]::-moz-range-track { background: transparent; }
+.pm-notch { position: absolute; top: 21px; transform: translateX(-50%); font-size: 0.68rem; line-height: 1; color: var(--ink-3); white-space: nowrap; pointer-events: none; }
+.pm-notch::before { content: ""; position: absolute; left: 50%; top: -5px; width: 1px; height: 4px; background: currentColor; }
+.pm-notch.sat { color: var(--accent); font-weight: 600; }
+.pm-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 8px; }
+.pm-jump { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.pm-link { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 0.86rem; text-decoration: underline; text-underline-offset: 2px; }
+.pm-link:disabled { color: var(--ink-3); cursor: help; text-decoration: none; }
+.pm-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; color: var(--ink-2); margin-left: auto; }
+.pm-read { background: var(--surface-2); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 9px; }
+.pm-phase { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.3rem; }
+.pm-phase b { font-weight: 600; }
+.pm-pdot { width: 13px; height: 13px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 25%, transparent); transition: background 0.3s; }
+.pm-read { --c: var(--ink-3); }
+.pm-read[data-p="liquid"] { --c: var(--s1); } .pm-read[data-p="vapor"] { --c: var(--s4); } .pm-read[data-p="gas"] { --c: var(--s4); }
+.pm-read[data-p="supercritical"] { --c: var(--s7); } .pm-read[data-p="saturation"] { --c: var(--s2); } .pm-read[data-p="critical"] { --c: var(--accent); }
+.pm-sub { margin: -4px 0 0; font-size: 0.86rem; color: var(--ink-2); }
+.pm-cond { font-size: 0.86rem; color: var(--ink-2); font-family: var(--font-body); }
+.pm-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin: 0; }
+.pm-kv div { display: grid; gap: 1px; }
+.pm-kv dt { font-size: 0.72rem; color: var(--ink-3); }
+.pm-kv dd { margin: 0; font-size: 0.88rem; }
+.pm-best { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 11px; }
+.pm-best .lbl { color: var(--ink-3); font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.pm-bestrow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin-top: 2px; }
+.pm-z { font-size: 1.45rem; font-weight: 500; }
+.pm-v { font-size: 0.8rem; color: var(--ink-2); }
+.pm-zbar { display: block; width: 100%; height: auto; margin-top: 6px; }
+.pm-zb-track { fill: var(--surface-2); }
+.pm-zb-fill { fill: var(--c); opacity: 0.6; transition: fill 0.3s; }
+.pm-zb-one { stroke: var(--ink-2); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.pm-zb-t { font: 10px var(--font-body); fill: var(--ink-3); }
+.pm-zb-mk { fill: var(--s2); stroke: var(--surface); stroke-width: 2; }
+.pm-ztxt { margin: 4px 0 0; }
+.pm-path { background: var(--surface-2); border-radius: var(--radius); padding: 8px 10px 4px; margin-top: 10px; }
+.pm-path .lbl { font-size: 0.74rem; }
+.pm-path svg { display: block; width: 100%; height: auto; }
+.pm-pa-ax { stroke: var(--frame); }
+.pm-pa-one { stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.pm-pa-mark { stroke: var(--accent); stroke-dasharray: 2 2; }
+.pm-pa-line { fill: none; stroke: var(--s2); stroke-width: 2.2; stroke-linejoin: round; }
+.pm-pa-dot { fill: var(--s2); stroke: var(--surface); stroke-width: 1.5; }
+.pm-pa-t { font: 9.5px var(--font-body); fill: var(--ink-3); }
+.pm-pa-t.mark { fill: var(--accent); font-weight: 600; }
+.pm-meth { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.pm-meth li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: 5px; background: var(--surface); font-size: 0.83rem; box-shadow: inset 3px 0 0 transparent; cursor: help; }
+.pm-gdot { width: 10px; height: 10px; border-radius: 50%; background: var(--gc, var(--na)); }
+.pm-mz { font-size: 0.8rem; color: var(--ink-2); }
+.pm-mg { font-size: 0.72rem; font-weight: 600; color: var(--gi, var(--na-ink)); white-space: nowrap; min-width: 98px; text-align: right; }
+.pm-meth li.g-rec { --gc: var(--good); --gi: var(--good-ink); --gb: var(--good-bg); }
+.pm-meth li.g-ok { --gc: var(--ok); --gi: var(--ok-ink); --gb: var(--ok-bg); }
+.pm-meth li.g-caution { --gc: var(--warn); --gi: var(--warn-ink); --gb: var(--warn-bg); }
+.pm-meth li.g-no { --gc: var(--bad); --gi: var(--bad-ink); --gb: var(--bad-bg); }
+.pm-meth li.g-na { --gc: var(--na); --gi: var(--na-ink); --gb: var(--na-bg); color: var(--ink-3); }
+.pm-meth li.is-best { box-shadow: inset 3px 0 0 var(--accent); font-weight: 600; }
+.pm-meth li.flash { animation: pm-flash 0.8s ease-out; }
+@keyframes pm-flash { from { background: var(--gb); } to { background: var(--surface); } }
+.pm-note { margin: 0; font-size: 0.84rem; padding: 8px 10px; border-radius: var(--radius); background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn); }
+.pm-read .btn { justify-self: start; }
+.minimap .pm-open { display: block; margin: 4px auto 0; border: 0; background: none; color: var(--accent); cursor: pointer; font-size: 0.78rem; text-decoration: underline; text-underline-offset: 2px; }
+
 </style>
 <style>html{height:100%}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
@@ -271,11 +462,13 @@ details.ext[open] summary { margin-bottom: 4px; }
   <header class="topbar">
     <div class="eyebrow">Compressibility · molar volume · density — for pure gases and liquids</div>
     <h1>Pure-Fluid PVT Solver</h1>
-    <div class="sub">Pick a fluid and enter T and P (or T and V). The solver works out the phase, runs 8 methods, and tells you which answer to trust and why.</div>
+    <div class="sub">Pick a fluid and enter T and P (or T and V). The solver works out the phase, runs 8 methods, and tells you which answer to trust and why. <b>AI Check</b> does the same for an answer from a chatbot.</div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-solve" aria-selected="true" aria-controls="panel-solve" data-tab="solve">Solve</button>
+    <button class="tab" role="tab" id="tab-ai" aria-selected="false" aria-controls="panel-ai" data-tab="ai">AI Check</button>
+    <button class="tab" role="tab" id="tab-map" aria-selected="false" aria-controls="panel-map" data-tab="map">Phase map</button>
     <button class="tab" role="tab" id="tab-plots" aria-selected="false" aria-controls="panel-plots" data-tab="plots">Plots</button>
     <button class="tab" role="tab" id="tab-challenge" aria-selected="false" aria-controls="panel-challenge" data-tab="challenge">Common mistakes</button>
     <button class="tab" role="tab" id="tab-about" aria-selected="false" aria-controls="panel-about" data-tab="about">How it works</button>
@@ -359,6 +552,39 @@ details.ext[open] summary { margin-bottom: 4px; }
         <div class="card" id="tableCard"></div>
         <div class="card" id="warnCard"></div>
         <details class="card ext" id="extCard"></details>
+      </section>
+
+      <section id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" class="stack" hidden>
+        <div class="card ai-intro">
+          <h2>AI Check: can you trust the chatbot’s answer?</h2>
+          <p class="muted">Paste what an AI chatbot says about the volume, density or Z of a pure fluid. The solver reads it, redoes the calculation with every method, works out which equation (or which slip) the AI’s number came from, and tells you whether to trust it and why. It runs on thermodynamics alone: no AI, no internet.</p>
+          <div class="ai-grid">
+            <div class="ai-input">
+              <label for="aiText" class="lbl">The AI’s answer (include the question if the answer doesn’t repeat it)</label>
+              <textarea id="aiText" rows="8" spellcheck="false" placeholder="For example: Using PV = nRT, the density of CO₂ at 40 °C and 80 bar is about 135 kg/m³."></textarea>
+              <div class="ai-actions">
+                <button type="button" class="btn small" id="aiCheckBtn">Check the answer</button>
+                <select id="aiExample" aria-label="Load an example answer"><option value="">Load an example answer…</option></select>
+              </div>
+            </div>
+            <div class="ai-quiz">
+              <span class="lbl">Test any AI yourself</span>
+              <p class="hint">Ask a chatbot this question, then paste its reply on the left.</p>
+              <div class="ai-q" id="aiQuestion"></div>
+              <details class="ai-catch"><summary>What’s the catch?</summary><p id="aiCatch"></p></details>
+              <div class="ai-actions">
+                <button type="button" class="btn small secondary" id="aiCopyQ">Copy question</button>
+                <button type="button" class="btn small secondary" id="aiNewQ">Another question</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" id="aiRead" hidden></div>
+        <div class="card ai-verdict" id="aiVerdict" hidden aria-live="polite"></div>
+      </section>
+
+      <section id="panel-map" role="tabpanel" aria-labelledby="tab-map" class="stack" hidden>
+        <div class="card pm-card" id="pmCard"></div>
       </section>
 
       <section id="panel-plots" role="tabpanel" aria-labelledby="tab-plots" class="stack" hidden>
@@ -1158,7 +1384,7 @@ details.ext[open] summary { margin-bottom: 4px; }
       else add('Why Rackett', `For a ${kind} liquid it is the best simple method. The generalized chart and the cubic equations were built for non-polar fluids, so for liquids like this they can be ${cls === 'associating' ? '10–25' : '5–15'} % off.`);
     } else {
       id = ok(byId.lk) ? 'lk' : results.find(ok).id;
-      if (d.phase === 'saturation') add('Why two values', `Shown here is the vapour (Lee–Kesler); the liquid is in the Rackett row${ok(byId.rackett) ? ` (V = ${vol(byId.rackett.V)})` : ''}. One volume for the mixture needs the vapour fraction x: V = (1 − x)·V(liquid) + x·V(vapour).`);
+      if (d.phase === 'saturation') add('Why two values', `Shown here is the vapour (Lee–Kesler); the liquid is in the Rackett row${ok(byId.rackett) ? ` (V = ${vol(byId.rackett.V)})` : ''}. One volume for the mixture needs the vapour fraction x: V = (1 − x)·V(liquid) + x·V(vapour). If you know the volume, switch to “T and V” and the solver works out x.`);
       else if (cls === 'quantum') add('Why Lee–Kesler', 'With hydrogen’s negative ω it is the best general estimate for this light gas.');
       else if (polar) add('Why Lee–Kesler', `It is still the best general method, but it was built from non-polar fluids, so for this ${kind} fluid its error grows with pressure.`);
       else if (d.nearCritical) add('Why Lee–Kesler', 'It is the generalized compressibility chart written as an equation, and it stays closest to reference data even near the critical point, though no method is exact there.');
@@ -1296,6 +1522,23 @@ details.ext[open] summary { margin-bottom: 4px; }
       }
       out.results.push(r);
     }
+    // Best boiling-point estimate, the same way the (T, P) mode does it: the boiling pressure from the fluid's own
+    // Antoine equation when it has one (the generalized formula is 10 % low for water); the vapour volume from
+    // Lee–Kesler at that pressure; the liquid volume from Rackett (Lee–Kesler's liquid branch instead for a
+    // non-polar fluid where the two differ by more than 3 %). V between the two → boiling, x by the lever rule.
+    if (Tr < 1) {
+      const d0 = diagnose(fluid, T, 1);              // only its boiling-pressure part is used
+      const Psat = d0.Psat, PrS = Psat / fluid.Pc;
+      const vap = leeKesler(Tr, PrS, w, 'vapor'), liq = leeKesler(Tr, PrS, w, 'liquid'), rk = rackett(fluid, T);
+      const VV = vap ? vap.Z * R * T / Psat : null, VLlk = liq ? liq.Z * R * T / Psat : null;
+      const nonpolarLiq = ['simple', 'nonpolar', 'weakpolar', 'quantum'].includes(fluid.cls);
+      let VL = rk ? rk.Vsat : VLlk;
+      if (nonpolarLiq && rk && VLlk && Math.abs(rk.Vsat / VLlk - 1) > 0.03) VL = VLlk;
+      if (VL && VV) {
+        out.sat = { Psat, source: d0.PsatSource, VL, VV };
+        if (V > VL && V < VV) out.twoPhase = { Psat, source: d0.PsatSource, VL, VV, quality: (V - VL) / (VV - VL) };
+      }
+    }
     return out;
   }
 
@@ -1413,6 +1656,1141 @@ details.ext[open] summary { margin-bottom: 4px; }
     lkZofV, lkDeparture, lkRoots, leeKesler, lkSaturation, lkPfromV, lkTableInterp, LK_TABLE_TR, LK_TABLE_PR,
     rackett, diagnose, solveTP, solveTV, curveZvsP, generalizedChart, virialBoundary, isothermPV, domePV, density,
   };
+});
+
+</script>
+<script>
+/* =====================================================================
+   ai-check.js — "AI Check": a thermodynamics fact-checker for answers
+   written by AI chatbots (or anyone) about the volume, density or Z of a
+   pure fluid.
+
+   1. READ    the answer as plain text (no AI, no API): the fluid, T, P and
+              every volume / density / Z the answer states.
+   2. REDO    the calculation with every method in the solver, plus the
+              usual slips (middle cubic root, wrong phase, °C for K, ω left
+              out, unit and per-mole/per-kg mix-ups).
+   3. MATCH   each number the answer gives against those candidates: the
+              closest one is the method the answer must have used (its
+              "fingerprint").
+   4. JUDGE   it against the solver's best answer for that state and
+              explain, with the thermodynamics, why it is right or wrong.
+
+   Works in the browser (global AICheck) and in Node (tests).
+   ===================================================================== */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./thermo-core.js'));
+  else root.AICheck = factory(root.Thermo);
+})(typeof self !== 'undefined' ? self : this, function (T) {
+  'use strict';
+  const R = T.R, ATM = T.P_ATM;
+  const NAME = { vdw: 'van der Waals', rk: 'Redlich–Kwong', srk: 'Soave–Redlich–Kwong', pr: 'Peng–Robinson' };
+
+  /* ------------------------------------------------------------------
+     1. TEXT CLEAN-UP — chat answers come with LaTeX, Unicode super- and
+        subscripts, "× 10⁻⁴", thousands separators and "kg m⁻³" units.
+     ------------------------------------------------------------------ */
+  const SUPER = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', '⁺': '+' };
+  const SUB = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+  function clean(text) {
+    let s = String(text || '');
+    // LaTeX → plain text
+    s = s.replace(/\\(?:text|mathrm|mathit|textrm|textbf|mathbf|operatorname|mbox|boxed)\s*\{([^{}]*)\}/g, '$1')
+      .replace(/\\(?:left|right|displaystyle|quad|qquad)\b/g, ' ')
+      .replace(/\\[,;:! ]/g, ' ')
+      .replace(/\\times|\\cdot/g, '×').replace(/\\approx|\\simeq|\\sim/g, '≈').replace(/\\circ/g, '°')
+      .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)')
+      .replace(/\^\{([^{}]*)\}/g, '^$1').replace(/_\{([^{}]*)\}/g, '_$1')
+      .replace(/\\\(|\\\)|\\\[|\\\]|\$\$?/g, ' ')
+      .replace(/\*\*|__/g, '');
+    // mantissa × 10^exponent → e-notation (×10⁻⁴, x 10^-4, *10**-4, × 10^(−4))
+    s = s.replace(/(\d)\s*(?:×|x|\*|·)\s*10\s*(?:(?:\^|\*\*)\s*\(?\s*([-−+]?)\s*(\d+)(?:\s*\))?|([⁻⁺]?)([⁰¹²³⁴⁵⁶⁷⁸⁹]+))/g,
+      (m, d, s1, e1, s2, e2) => d + 'e' + ((s1 === '-' || s1 === '−' || s2 === '⁻') ? '-' : '') + (e1 || [...e2].map(c => SUPER[c]).join('')));
+    s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, c => SUPER[c]).replace(/[₀₁₂₃₄₅₆₇₈₉]/g, c => SUB[c]);
+    s = s.replace(/℃/g, '°C').replace(/º/g, '°').replace(/−/g, '-').replace(/ℓ/g, 'L').replace(/[µμ]/g, 'u');
+    // thousands separators: 1,479 / 30 100 (thin or no-break space)
+    s = s.replace(/(\d),(?=\d{3}(?!\d))/g, '$1').replace(/(\d)[   ](?=\d{3}(?!\d))/g, '$1');
+    // units: m^3 → m3, "cm3 per mol" → cm3/mol, "cm3 mol-1" → cm3/mol, "kg m-3" → kg/m3
+    s = s.replace(/m\s*\^\s*3(?![0-9])/g, 'm3')
+      .replace(/\b(cm3|dm3|m3|mL|ml|cc|L|l|liters?|litres?|kg|g|mol|kmol)\s+per\s+(kmol|mol|kg|g|m3|cm3|dm3|L|l|mL|ml)\b/g, '$1/$2')
+      .replace(/\b(cm3|dm3|m3|mL|ml|L|l)\s*[·* ]?\s*(kmol|mol|kg|g)\s*\^?-1\b/g, '$1/$2')
+      .replace(/\b(kg|g|kmol|mol)\s*[·* ]?\s*(c|d)?m\s*\^?-3\b/g, '$1/$2m3')
+      .replace(/\b(kg|g|mol)\s*[·* ]?\s*(L|l)\s*\^?-1\b/g, '$1/$2');
+    return s;
+  }
+
+  /* ------------------------------------------------------------------
+     2. WHICH FLUID — the first one the text names
+     ------------------------------------------------------------------ */
+  const ALIASES = {
+    isobutane: [/\biso-?butane\b/i, /\bi-butane\b/i, /\b2-methylpropane\b/i],
+    nbutane: [/\bn-?butane\b/i, /\bbutane\b/i, /\bC4H10\b/],
+    methane: [/\bmethane\b/i, /\bCH4\b/], ethane: [/\bethane\b/i, /\bC2H6\b/], propane: [/\bpropane\b/i, /\bC3H8\b/],
+    npentane: [/\bn-?pentane\b/i, /\bC5H12\b/], nhexane: [/\bn-?hexane\b/i, /\bC6H14\b/], nheptane: [/\bn-?heptane\b/i, /\bC7H16\b/],
+    noctane: [/\bn-?octane\b/i, /\bC8H18\b/], ethylene: [/\bethylene\b/i, /\bethene\b/i, /\bC2H4\b/], propylene: [/\bpropylene\b/i, /\bpropene\b/i, /\bC3H6\b/],
+    benzene: [/\bbenzene\b/i, /\bC6H6\b/], toluene: [/\btoluene\b/i], cyclohexane: [/\bcyclohexane\b/i, /\bC6H12\b/],
+    argon: [/\bargon\b/i, /\bAr\b/], nitrogen: [/\bnitrogen\b/i, /\bN2\b/], oxygen: [/\boxygen\b/i, /\bO2\b/],
+    co: [/\bcarbon monoxide\b/i, /\bCO\b/], co2: [/\bcarbon dioxide\b/i, /\bCO2\b/],
+    h2s: [/\bhydrogen sul(?:f|ph)ide\b/i, /\bH2S\b/], hydrogen: [/\bhydrogen\b(?!\s*(?:bond|sul))/i, /\bH2\b/],
+    so2: [/\bsul(?:f|ph)ur dioxide\b/i, /\bSO2\b/], r134a: [/\b(?:HFC-?|R-?)134a\b/i, /\btetrafluoroethane\b/i],
+    acetone: [/\bacetone\b/i], ammonia: [/\bammonia\b/i, /\bNH3\b/],
+    water: [/\bwater\b/i, /\bsteam\b/i, /\bH2O\b/], methanol: [/\bmethanol\b/i, /\bmethyl alcohol\b/i, /\bCH3OH\b/],
+    ethanol: [/\bethanol\b/i, /\bethyl alcohol\b/i, /\bC2H5OH\b/],
+  };
+  function findFluid(s) {
+    let best = null;
+    for (const [id, list] of Object.entries(ALIASES)) for (const re of list) {
+      const m = re.exec(s);
+      if (m && (!best || m.index < best.at)) best = { id, at: m.index, text: m[0] };
+    }
+    return best;
+  }
+
+  /* ------------------------------------------------------------------
+     3. NUMBERS WITH UNITS
+        kind: T (K) · P (bar) · V (molar volume) · v (specific volume) ·
+              rho (density) · c (molar density) · Z
+        Every result quantity is turned into V in cm³/mol, the solver's unit.
+     ------------------------------------------------------------------ */
+  const U = (re, kind, f, extra) => Object.assign({ re: new RegExp('\\s*(?:' + re + ')(?![A-Za-z0-9])', 'y'), kind, f }, extra || {});
+  const UNITS = [
+    // temperature (f = conversion to K applied in toK)
+    U('°\\s*C|deg(?:rees?)?\\s*C(?:elsius)?|degC|C(?:elsius)?', 'T', 'C'),
+    U('°\\s*F|deg(?:rees?)?\\s*F(?:ahrenheit)?|F(?:ahrenheit)?', 'T', 'F'),
+    U('°\\s*R|R(?:ankine)', 'T', 'R'),
+    U('K(?:elvin)?', 'T', 'K'),
+    // pressure in bar (gauge units add one atmosphere)
+    U('GPa', 'P', 1e4), U('MPa', 'P', 10), U('kPa', 'P', 0.01), U('hPa|mbar', 'P', 0.001),
+    U('bar\\s*\\(\\s*g(?:auge)?\\s*\\)|bar\\s+gauge|barg', 'P', 1, { gauge: true }),
+    U('bar\\s*\\(\\s*a(?:bs(?:olute)?)?\\s*\\)|bar\\s+abs(?:olute)?|bara|bars?', 'P', 1),
+    U('atm', 'P', ATM), U('psig|psi\\s*\\(\\s*g(?:auge)?\\s*\\)|psi\\s+gauge', 'P', 0.0689476, { gauge: true }), U('psia?', 'P', 0.0689476),
+    U('mm\\s*Hg|torr', 'P', 0.00133322), U('Pa', 'P', 1e-5),
+    // molar volume → cm³/mol
+    U('m3\\s*\\/\\s*kmol', 'V', 1000), U('[Ll]\\s*\\/\\s*kmol', 'V', 1),
+    U('cm3\\s*\\/\\s*mol|cc\\s*\\/\\s*mol|m[Ll]\\s*\\/\\s*mol', 'V', 1),
+    U('dm3\\s*\\/\\s*mol|[Ll]\\s*\\/\\s*mol|lit(?:er|re)s?\\s*\\/\\s*mol', 'V', 1000),
+    U('m3\\s*\\/\\s*mol', 'V', 1e6),
+    // specific volume (× M gives cm³/mol): m³/kg = 1000 cm³/g
+    U('m3\\s*\\/\\s*kg', 'v', 1000), U('cm3\\s*\\/\\s*g|m[Ll]\\s*\\/\\s*g|cc\\s*\\/\\s*g|[Ll]\\s*\\/\\s*kg|dm3\\s*\\/\\s*kg', 'v', 1),
+    // density → kg/m³
+    U('kg\\s*\\/\\s*m3', 'rho', 1), U('g\\s*\\/\\s*cm3|g\\s*\\/\\s*m[Ll]|g\\s*\\/\\s*cc|kg\\s*\\/\\s*[Ll]|kg\\s*\\/\\s*dm3', 'rho', 1000),
+    U('g\\s*\\/\\s*[Ll]|g\\s*\\/\\s*dm3', 'rho', 1),
+    // molar density → V = f / c  (cm³/mol)
+    U('kmol\\s*\\/\\s*m3|mol\\s*\\/\\s*[Ll]|mol\\s*\\/\\s*dm3', 'c', 1000), U('mol\\s*\\/\\s*m3', 'c', 1e6), U('mol\\s*\\/\\s*cm3', 'c', 1),
+  ];
+  const UNIT_TEXT = { K: 'K', C: '°C', F: '°F', R: '°R' };
+  const toK = (x, u) => u === 'C' ? x + 273.15 : u === 'F' ? (x - 32) * 5 / 9 + 273.15 : u === 'R' ? x * 5 / 9 : x;
+  const NUM = /(?<![\w.])(-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|-?\.\d+(?:[eE][-+]?\d+)?)/g;
+
+  // significant figures of a number as written (sets the rounding tolerance)
+  function sigFigs(str) {
+    const m = String(str).replace(/^-/, '').split(/[eE]/)[0];
+    const digits = m.replace('.', '').replace(/^0+/, '');
+    if (!m.includes('.')) return Math.max(1, digits.replace(/0+$/, '').length);
+    return Math.max(1, digits.length);
+  }
+  // the words just before a number, on the same line (to skip Tc, Pc, b, B, Vc …)
+  const before = (s, i, n) => s.slice(Math.max(0, i - (n || 45)), i).split('\n').pop();
+  const SKIP_T = /(\bT_?c\b|\bT_?b\b|critical|boiling|triple|reduced|\bT_?r\b|ΔT|\bdelta\b)[^.]*$/i;
+  const SKIP_P = /(\bP_?c\b|critical|vapou?r pressure|saturation pressure|\bP_?sat\b|boiling pressure|reduced|\bP_?r\b|ΔP)[^.]*$/i;
+  const SKIP_V = /(critical|\bV_?c\b|\bb\s*=\s*$|\bB\s*=\s*$|\bB_?0\b|\bB_?1\b|co-?volume|excluded volume|virial coefficient|\bparameters?\b[^=]*=\s*$)/i;
+
+  function scanQuantities(s) {
+    const out = [];
+    NUM.lastIndex = 0;
+    let m;
+    while ((m = NUM.exec(s))) {
+      const end = m.index + m[0].length;
+      for (const u of UNITS) {
+        u.re.lastIndex = end;
+        const um = u.re.exec(s);
+        if (!um) continue;
+        const x = parseFloat(m[1]);
+        out.push({ kind: u.kind, x, f: u.f, gauge: !!u.gauge, raw: s.slice(m.index, end + um[0].length).trim(), num: m[1], unit: um[0].trim(), start: m.index, end: end + um[0].length });
+        break;
+      }
+    }
+    return out;
+  }
+  // "Z = 0.87", "Z = PV/RT = … = 0.87", "compressibility factor of 0.87"
+  function scanZ(s) {
+    const out = [];
+    const re = /\bZ\b\s*(?:\((?:[A-Za-z–\- ]{2,25})\))?\s*(?:=|≈|≅|~|:|\bis\b|\bof\b)|\bcompressibility(?:\s+factor)?(?:\s*,?\s*Z\b)?\s*(?:=|≈|≅|~|:|\bis\b|\bof\b)?/gi;
+    let m;
+    while ((m = re.exec(s))) {
+      if (/^z/i.test(m[0]) && m[0][0] !== 'Z') continue;                 // a lower-case z is not the compressibility factor
+      const from = m.index + m[0].length;
+      let rest = s.slice(from, from + 140);
+      rest = rest.split(/\n|;|,|\.\s|\.$|\bso\b|\bwhich\b|\band\b|\bthen\b|\bthus\b|\btherefore\b|\bgiving\b|\bgives\b/i)[0];
+      const segs = rest.split(/=|≈|≅/);
+      // the value is the number that starts the last segment, when nothing but words or punctuation follows it
+      // ("… = 0.8722 for n-butane"), not an expression ("0.8648 + 0.2(0.0372)") or a quantity with a unit
+      const lm = /^\s*(?:about|approximately|approx\.?|roughly|around|~)?\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)(?![\d.])(?!\s*(?:[-+*×/^(]|(?:L|mL|m3|cm3|dm3|kg|g|mol|bar|atm|Pa|kPa|MPa|K|J|°)(?![A-Za-z])))/i.exec(segs[segs.length - 1]);
+      if (!lm) continue;
+      const last = lm[1];
+      const z = parseFloat(last);
+      if (!(z > 0 && z < 5) || Math.abs(z - 1) < 1e-9) continue;          // "Z = 1" is a remark about the ideal gas
+      const at = s.indexOf(last, from);
+      out.push({ kind: 'Z', x: z, f: 1, raw: 'Z = ' + last, num: last, unit: '', start: at >= 0 ? at : from, end: (at >= 0 ? at : from) + last.length });
+    }
+    return out;
+  }
+
+  /* convert a result quantity to V (cm³/mol), and back to the answer's own unit */
+  function toV(q, M, Vig) {
+    switch (q.kind) {
+      case 'V': return q.x * q.f;
+      case 'v': return q.x * q.f * M;
+      case 'rho': return 1000 * M / (q.x * q.f);
+      case 'c': return q.f / q.x;
+      case 'Z': return q.x * Vig;
+    }
+    return NaN;
+  }
+  function fromV(V, q, M, Vig) {
+    switch (q.kind) {
+      case 'V': return V / q.f;
+      case 'v': return V / (q.f * M);
+      case 'rho': return 1000 * M / (V * q.f);
+      case 'c': return q.f / V;
+      case 'Z': return V / Vig;
+    }
+    return NaN;
+  }
+  const QUANTITY = { V: 'molar volume', v: 'specific volume', rho: 'density', c: 'molar density', Z: 'compressibility factor Z' };
+
+  /* ------------------------------------------------------------------
+     4. READ AN ANSWER
+     ------------------------------------------------------------------ */
+  function parse(text) {
+    const s = clean(text);
+    const fl = findFluid(s);
+    const qs = scanQuantities(s);
+    const notes = [];
+    let Tq = null, Pq = null;
+    for (const q of qs) {
+      if (q.kind === 'T' && !Tq && !SKIP_T.test(before(s, q.start))) Tq = q;
+      if (q.kind === 'P' && !Pq && !SKIP_P.test(before(s, q.start)) && q.x > 0) Pq = q;
+    }
+    // result quantities: positive, not a parameter (b, B, Vc …)
+    let claims = qs.filter(q => ['V', 'v', 'rho', 'c'].includes(q.kind) && q.x > 0 && !SKIP_V.test(before(s, q.start)));
+    claims = claims.concat(scanZ(s)).sort((a, b) => a.start - b.start);
+    const Tk = Tq ? toK(Tq.x, Tq.f) : null;
+    const Pbar = Pq ? Pq.x * Pq.f + (Pq.gauge ? ATM : 0) : null;
+    if (Pq && Pq.gauge) notes.push('The pressure is a gauge pressure; one atmosphere was added to make it absolute.');
+    return {
+      text: s, fluidId: fl ? fl.id : null, fluidText: fl ? fl.text : null,
+      T: Tk, Tunit: Tq ? Tq.f : null, Traw: Tq ? Tq.raw : null,
+      P: Pbar, Praw: Pq ? Pq.raw : null,
+      claims: claims.map(c => ({ kind: c.kind, x: c.x, f: c.f, raw: c.raw, num: c.num, unit: c.unit, start: c.start, sig: sigFigs(c.num) })),
+      notes,
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     5. EVERY WAY TO GET A NUMBER AT THIS STATE — methods and slips
+     ------------------------------------------------------------------ */
+  function candidates(fluid, Tk, P, opts) {
+    const s = T.solveTP(fluid, Tk, P), d = s.diagnosis, Vig = s.Vig;
+    const by = id => s.results.find(r => r.id === id);
+    const list = [];
+    const add = (key, label, V, extra) => { if (isFinite(V) && V > 0) list.push(Object.assign({ key, label, V }, extra || {})); };
+    add('ideal', 'the ideal-gas law (PV = RT)', Vig, { method: 'ideal' });
+    const vir = by('virial2'); if (vir && vir.Z > 0) add('virial2', 'the two-term virial equation', vir.V, { method: 'virial2' });
+    const lk = by('lk');
+    if (lk) {
+      add('lk', 'Lee–Kesler, the generalized chart', lk.V, { method: 'lk' });
+      if (lk.detail && isFinite(lk.detail.Z0) && Math.abs(fluid.omega) > 0.02) add('lk0', 'the generalized chart without its ω term (Z⁰ only)', lk.detail.Z0 * Vig, { slip: 'omega' });
+    }
+    if (d.Tr < 1 && lk) {
+      const other = d.phase === 'liquid' ? 'vapor' : 'liquid';
+      const o = T.leeKesler(d.Tr, d.Pr, fluid.omega, other);
+      if (o && isFinite(o.Z) && Math.abs(o.Z / lk.Z - 1) > 0.05) add('lkOther', `Lee–Kesler, ${other === 'liquid' ? 'liquid' : 'vapour'} branch`, o.Z * Vig, { phaseOf: other === 'liquid' ? 'liquid' : 'vapour' });
+    }
+    for (const id of T.CUBIC_IDS) {
+      const r = by(id); if (!r || !r.detail || !r.detail.roots) continue;
+      for (const root of r.detail.roots) {
+        const kind = root.kind || '';
+        if (root === r.root) add(id, NAME[id], root.Z * Vig, { method: id, eos: id });
+        else if (/middle/.test(kind)) add(id + 'Mid', `${NAME[id]}, middle root`, root.Z * Vig, { middle: true, eos: id });
+        else add(id + 'Alt', `${NAME[id]}, ${/liquid/.test(kind) ? 'liquid' : 'vapour'} root`, root.Z * Vig, { eos: id, phaseOf: /liquid/.test(kind) ? 'liquid' : 'vapour', psatEOS: r.PsatEOS });
+      }
+    }
+    const rk = by('rackett'); if (rk && isFinite(rk.V)) add('rackett', 'Rackett (saturated liquid)', rk.V, { method: 'rackett', phaseOf: 'liquid' });
+    if (opts && opts.Tunit === 'C' && Tk - 273.15 > 0.5)
+      add('idealC', `PV = RT with T = ${+(Tk - 273.15).toFixed(2)} °C used as kelvin`, R * (Tk - 273.15) / P, { slip: 'celsius' });
+    return { s, d, Vig, list };
+  }
+
+  /* ------------------------------------------------------------------
+     6. JUDGE ONE NUMBER
+     ------------------------------------------------------------------ */
+  const pct = x => { const a = Math.abs(100 * x); return (a < 0.1 ? '0.1' : a < 9.95 ? a.toFixed(1) : a.toFixed(0)) + ' %'; };
+  const away = x => Math.abs(100 * x) < 0.1 ? 'less than 0.1 % away' : pct(x) + ' away';
+  const join = a => a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  const times = r => (r < 9.95 ? r.toFixed(1) : r.toFixed(0)) + '×';
+  const fmt = x => !isFinite(x) ? '–' : Math.abs(x) >= 1000 ? Math.round(x).toLocaleString('en-US') : Number(x).toPrecision(3);
+  // how far a value is from a reference, in the words that suit the quantity (volumes: large/small; others: high/low)
+  function howFar(q, qref, kind) {
+    const [up, down] = kind === 'V' || kind === 'v' ? ['too large', 'too small'] : ['too high', 'too low'];
+    const r = q / qref;
+    return r >= 2 ? `${times(r)} ${up}` : r <= 0.5 ? `${times(1 / r)} ${down}` : `${pct(r - 1)} ${r > 1 ? up : down}`;
+  }
+  function unitOf(claim) { return claim.kind === 'Z' ? '' : claim.unit.replace(/\s+/g, '').replace(/3\b/g, '³'); }
+  function inUnits(V, claim, M, Vig) {
+    const x = fromV(V, claim, M, Vig);
+    return claim.kind === 'Z' ? `Z = ${x.toPrecision(3)} (V = ${fmt(V)} cm³/mol)` : `${fmt(x)} ${unitOf(claim)}`;
+  }
+  function bandFor(d, fluid) {
+    const polar = fluid.cls === 'polar' || fluid.cls === 'associating';
+    if (d.nearCritical) return 0.08;
+    if (d.phase === 'liquid') return polar ? 0.06 : 0.03;
+    return polar ? 0.04 : 0.02;
+  }
+  function unitSlip(V, refs, M) {
+    const names = ['the solver’s answer', 'the ideal-gas value'];
+    const sup = n => String(Math.abs(n)).replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]);
+    for (let i = 0; i < refs.length; i++) {
+      const r = V / refs[i];
+      for (const k of [1, M, 1 / M]) for (let n = -9; n <= 9; n++) {
+        if (n === 0 && k === 1) continue;
+        if (Math.abs(r / (Math.pow(10, n) * k) - 1) < 0.02) {
+          const ft = k === 1 ? `a factor of 10${n < 0 ? '⁻' : ''}${sup(n)}` : 'the molar mass';
+          return { factorText: ft, text: k === 1 ? `Equals ${names[i]} off by exactly ${ft}: a units slip.` : `Equals ${names[i]} with per-kilogram and per-mole mixed up (M = ${M} g/mol).` };
+        }
+      }
+    }
+    return null;
+  }
+
+  function judge(claim, ctx) {
+    const { fluid, s, d, Vig, list } = ctx;
+    const M = fluid.M, kind = claim.kind;
+    const V = toV(claim, M, Vig);
+    const q = V2 => fromV(V2, claim, M, Vig);                       // a volume in the answer's own quantity
+    // rounding tolerance from the digits the answer gave (half a unit in the last place) plus 0.5 % slack
+    const mant = Math.abs(claim.x) / Math.pow(10, Math.floor(Math.log10(Math.abs(claim.x))));
+    const tol = Math.max(0.01, 0.5 * Math.pow(10, 1 - claim.sig) / mant + 0.005);
+    const matches = list.map(c => ({ c, dev: V / c.V - 1 })).filter(m => Math.abs(m.dev) <= tol).sort((a, b) => Math.abs(a.dev) - Math.abs(b.dev));
+    const top = matches[0] || null, c = top ? top.c : null;
+    const polar = fluid.cls === 'polar' || fluid.cls === 'associating';
+    const band = bandFor(d, fluid) + tol - 0.005;
+    const phaseWord = { gas: 'a gas', supercritical: 'a supercritical fluid', vapor: 'a vapour', liquid: 'a liquid', saturation: 'at its boiling point' }[d.phase];
+    const out = { V, matches, top, tol, notes: [] };
+
+    // the reference: the best answer, or at the boiling point the phase this number is closer to
+    let ref = s.best.V, refName = s.best.id === 'lk' ? 'Lee–Kesler' : 'Rackett', satPhase = null;
+    const liq = s.results.find(r => r.id === 'rackett');
+    if (d.phase === 'saturation' && liq && isFinite(liq.V)) {
+      satPhase = Math.abs(Math.log(V / liq.V)) < Math.abs(Math.log(V / s.best.V)) ? 'liquid' : 'vapour';
+      if (satPhase === 'liquid') { ref = liq.V; refName = 'Rackett, liquid'; }
+    }
+    const dev = V / ref - 1;
+    out.devBest = dev; out.bestV = ref;
+    out.bestText = satPhase ? `${inUnits(liq.V, claim, M, Vig)} liquid, ${inUnits(s.best.V, claim, M, Vig)} vapour` : inUnits(ref, claim, M, Vig) + ` (${refName})`;
+
+    // ---- verdict
+    const bandHere = satPhase === 'liquid' ? band + (polar ? 0.06 : 0.01) : band;
+    if (c && c.middle) out.verdict = 'wrong';
+    else if (Math.abs(dev) <= bandHere) out.verdict = satPhase ? 'incomplete' : 'right';
+    else if (Math.abs(dev) <= bandHere + 0.06) out.verdict = 'close';
+    else out.verdict = 'wrong';
+    if (satPhase) out.phaseGiven = satPhase;
+    out.band = bandHere;
+
+    // ---- the fingerprint and the thermodynamics behind it
+    let fp = '', expl = '';
+    if (c) {
+      const also = matches.slice(1).filter(m => !m.c.middle && m.c.key !== c.key).slice(0, 2).map(m => m.c.label);
+      fp = `Matches ${c.label} (${away(top.dev)}).` + (also.length ? ` ${join(also).replace(/^./, x => x.toUpperCase())} ${also.length > 1 ? 'agree' : 'agrees'} here too.` : '');
+      const far = howFar(q(c.V), q(ref), kind);
+      if (c.middle) {
+        expl = 'The middle root of a cubic equation is unphysical: on that part of the curve the pressure would rise as the fluid expands. Take the smallest root for a liquid or the largest for a vapour.';
+        out.trap = 'roots';
+      } else if (c.key === 'ideal' || c.key === 'virial2') {
+        const what = c.key === 'ideal' ? 'The ideal-gas law' : 'The virial equation';
+        if (d.phase === 'liquid' || satPhase === 'liquid') { expl = `${what} treats it as a gas, but at this T and P it is a liquid (it boils at ${fmt(d.Psat)} bar), so the result is ${far}.`; out.trap = 'gas-liquid'; }
+        else if (out.verdict === 'right' || out.verdict === 'incomplete') expl = c.key === 'ideal' ? 'At this low density the gas is close to ideal, so PV = RT is good enough.' : 'The two-term virial equation is inside its range here.';
+        else if (c.key === 'ideal') { expl = `Here Z = ${s.best.Z.toFixed(3)}, not 1: ${s.best.Z < 1 ? 'the attraction between the molecules' : 'the size of the molecules'} matters at this pressure, so PV = RT gives a ${QUANTITY[kind]} ${far}.`; out.trap = 'ideal-highP'; }
+        else { expl = `A two-term virial series only works at low density; here it is ${far}.`; out.trap = 'virial-range'; }
+      } else if (c.key === 'lk0') {
+        expl = `This leaves out the ω·Z¹ term, as if ${fluid.name.toLowerCase()} were a simple spherical molecule like argon; with ω = ${fluid.omega} that term changes the answer by ${pct(c.V / ref - 1)}.`;
+        out.trap = 'omega';
+      } else if (c.phaseOf && !c.method && satPhase !== c.phaseOf) {
+        expl = `This is a ${c.phaseOf} value, but at this T and P the fluid is ${phaseWord}` + (c.psatEOS ? `: ${NAME[c.eos]} puts the boiling pressure at ${fmt(c.psatEOS)} bar instead of ${fmt(d.Psat)} bar, so it picks the wrong root.` : '.');
+        out.trap = 'roots';
+      } else if (c.key === 'lk' || c.key === 'lkOther') {
+        expl = out.verdict === 'right' || out.verdict === 'incomplete' ? 'Lee–Kesler is the generalized compressibility chart written as an equation: a reliable method here.'
+          : polar ? `Lee–Kesler was built from non-polar fluids; for this ${fluid.cls === 'associating' ? 'hydrogen-bonding' : 'polar'} fluid it is ${far}.` : `Lee–Kesler is ${far} here.`;
+        if (polar && out.verdict === 'wrong') out.trap = 'polar';
+      } else if (c.method === 'rackett') {
+        expl = d.phase === 'liquid' || satPhase === 'liquid' ? 'Rackett gives the liquid volume from Tc, Pc and Zc: the right kind of method for a liquid.'
+          : `Rackett gives a liquid volume, but this state is ${phaseWord}.`;
+      } else if (c.eos) {
+        const isLiq = d.phase === 'liquid' || satPhase === 'liquid';
+        if (out.verdict === 'right' || out.verdict === 'incomplete') expl = `${NAME[c.eos]} agrees with the best method here.`;
+        else if (isLiq && polar) { expl = `Cubic equations were fitted to non-polar fluids; for a ${fluid.cls === 'associating' ? 'hydrogen-bonding' : 'polar'} liquid like ${fluid.name.toLowerCase()} they are 15–30 % off (here ${far}). Rackett suits this liquid better.`; out.trap = 'polar'; }
+        else if (isLiq) expl = `Cubic equations over-predict liquid volumes: ${NAME[c.eos]} is ${far} here.`;
+        else expl = `${NAME[c.eos]} is ${far} here` + (c.eos === 'vdw' ? ': van der Waals has the right shape but only rough numbers.' : '.');
+      } else if (c.slip === 'celsius') {
+        expl = `Gas laws need absolute temperature: T is ${fmt(ctx.Tk)} K, not ${+(ctx.Tk - 273.15).toFixed(2)}. That alone makes the volume ${pct(c.V / Vig - 1)} too small, before any real-gas correction.`;
+        out.trap = 'units';
+      }
+    } else {
+      const slip = unitSlip(V, [s.best.V, Vig], M);
+      if (slip) { fp = slip.text; expl = 'The thermodynamics is not the problem here, the units are: check R, P and V.'; out.slip = slip; out.verdict = 'wrong'; out.trap = 'units'; }
+      else if (out.verdict === 'right') fp = 'Does not match one textbook method exactly, but it is close to the best answer.';
+      else {
+        fp = 'Does not match any standard method at this state: probably a misread chart, an arithmetic slip, or a method that does not suit it.';
+        const zc = V / Vig, zb = ref / Vig;
+        if (kind !== 'Z' && zc > 0) expl = `It implies Z = ${zc.toPrecision(2)}, while ${refName} gives Z = ${zb.toPrecision(3)} here` + (d.nearCritical ? ': near the critical point the chart’s lines are steep, so reading Z by eye is easy to get wrong.' : '.');
+      }
+    }
+    if (satPhase && out.verdict !== 'wrong') {
+      expl = (expl ? expl + ' ' : '') + `But at the boiling point liquid and vapour exist together: the ${satPhase === 'vapour' ? 'liquid' : 'vapour'} value is ${inUnits(satPhase === 'vapour' ? (liq ? liq.V : NaN) : s.best.V, claim, M, Vig)}, and one volume for the mixture needs the vapour fraction x.`;
+      out.trap = 'boiling';
+    }
+    if (d.nearCritical) {
+      out.notes.push('Near the critical point Z changes very fast with T and P, so no single number is reliable to better than a few %.');
+      if (claim.sig >= 4) out.notes.push(`Quoting ${claim.sig} significant figures here is false precision.`);
+      if (!out.trap) out.trap = 'critical';
+    }
+    if (polar && !out.trap && out.verdict === 'wrong') out.trap = 'polar';
+    out.fingerprint = fp;
+    out.explain = expl ? expl.charAt(0).toUpperCase() + expl.slice(1) : expl;
+    const qa = q(V), qb = q(ref);
+    out.headline = c && c.middle ? 'Wrong: this is the unphysical middle root of the cubic.'
+      : out.verdict === 'incomplete' ? `Half an answer: this is only the ${satPhase} value at the boiling point.`
+      : out.verdict === 'right' ? (d.nearCritical && claim.sig >= 4 ? `Within the uncertainty (${pct(dev)} from the best answer), but not to ${claim.sig} figures.` : `Right: within ${pct(dev)} of the solver’s best answer.`)
+        : out.verdict === 'close' ? `Roughly right: ${howFar(qa, qb, kind)}.`
+          : out.slip ? `Wrong: off by ${out.slip.factorText}.`
+            : `Wrong: ${howFar(qa, qb, kind)}${satPhase ? ` for the ${satPhase}` : ''}.`;
+    return out;
+  }
+
+  /* ------------------------------------------------------------------
+     7. CHECK A WHOLE ANSWER
+     ------------------------------------------------------------------ */
+  function check(input) {
+    const p = typeof input === 'string' ? parse(input) : input;
+    const res = { parsed: p, ok: false, missing: [] };
+    if (!p.fluidId) res.missing.push('fluid');
+    if (!(p.T > 0)) res.missing.push('temperature');
+    if (!(p.P > 0)) res.missing.push('pressure');
+    if (!p.claims.length) res.missing.push('a volume, density or Z to check');
+    if (res.missing.length) return res;
+    const fluid = T.getFluid(p.fluidId);
+    const ctx = candidates(fluid, p.T, p.P, { Tunit: p.Tunit });
+    Object.assign(ctx, { fluid, Tk: p.T });
+    // the same value said twice (e.g. "Z = 0.711 … V = 1773 cm³/mol" or "0.325 L/mol (325 cm³/mol)") is one claim,
+    // placed where it was said last; a volume or density is shown in preference to Z
+    const kept = [];
+    for (const c of p.claims) {
+      const V = toV(c, fluid.M, ctx.Vig);
+      if (!(V > 0) || !isFinite(V)) continue;
+      const dup = kept.find(k => Math.abs(k.V / V - 1) < 0.004 && c.start - k.pos < 200);
+      if (dup) { if (dup.c.kind === 'Z' && c.kind !== 'Z') dup.c = c; dup.pos = c.start; continue; }
+      kept.push({ c, V, pos: c.start });
+    }
+    kept.sort((a, b) => a.pos - b.pos);
+    const claims = kept.map(k => Object.assign({}, k.c, judge(k.c, ctx)));
+    if (!claims.length) { res.missing.push('a volume, density or Z to check'); return res; }
+    res.ok = true;
+    res.fluid = fluid; res.state = ctx.s; res.candidates = ctx.list; res.claims = claims; res.Vig = ctx.Vig;
+    res.final = claims[claims.length - 1];
+    // at the boiling point, an answer that gives both phases is complete
+    if (ctx.d.phase === 'saturation') {
+      const phases = new Set(claims.filter(c => c.verdict === 'incomplete').map(c => c.phaseGiven));
+      if (phases.size === 2) for (const c of claims) if (c.verdict === 'incomplete') { c.verdict = 'right'; c.headline = `Right: the ${c.phaseGiven} value at the boiling point, and the answer gives both phases.`; }
+    }
+    res.verdict = res.final.verdict;
+    res.correction = correction(res);
+    return res;
+  }
+
+  /* a message to paste back into the chat so the AI can correct itself */
+  function correction(res) {
+    const { fluid, state: s, final: c } = res;
+    const d = s.diagnosis;
+    const tp = `${fluid.name} at ${fmt(d.T)} K and ${fmt(d.P)} bar`;
+    const phase = { gas: 'a gas (above Tc)', supercritical: 'a supercritical fluid (above Tc and Pc)', vapor: 'a vapour', liquid: 'a liquid', saturation: 'at its boiling point' }[d.phase];
+    const head = `Please check your answer. ${tp} is ${phase} (Tr = ${d.Tr.toFixed(2)}, Pr = ${d.Pr.toFixed(2)}` + (d.Tr < 1 ? `, boiling pressure about ${fmt(d.Psat)} bar` : '') + '). ';
+    let msg;
+    if (c.verdict === 'right') msg = `Your answer (${c.raw}) agrees with a real-fluid calculation for ${tp}.` + (d.nearCritical ? ' Near the critical point, please give it as a range rather than one precise number.' : '');
+    else if (c.verdict === 'incomplete') msg = head + 'At the boiling point liquid and vapour exist together, so please give both the liquid and the vapour value, and note that one volume needs the vapour fraction.';
+    else msg = head + `Your value ${c.raw} ` + (c.top ? `matches ${c.top.c.label}` : c.slip ? `looks like a units slip (${c.slip.factorText})` : 'does not match a suitable method') + '. '
+      + (c.explain ? c.explain + ' ' : '') + `A real-fluid calculation gives about ${c.bestText}. Please redo it with a method that suits this state.`;
+    return msg.replace(/ /g, ' ');
+  }
+
+  /* ------------------------------------------------------------------
+     8. QUESTIONS THAT TRIP UP A CHATBOT (to test any AI live)
+     ------------------------------------------------------------------ */
+  const QUESTIONS = [
+    { q: 'What is the density of carbon dioxide at 40 °C and 80 bar? Give one number in kg/m³.', trap: 'Near the critical point: the ideal-gas law is about 2× off.' },
+    { q: 'What is the molar volume of n-butane at 300 K and 10 bar?', trap: 'It is a liquid: gas equations give a volume 17–24× too large.' },
+    { q: 'What is the specific volume of water at 100 °C and 1 atm?', trap: 'The boiling point: one number is only half an answer.' },
+    { q: 'Use the van der Waals equation to find the molar volume of n-butane at 350 K and 9.4573 bar.', trap: 'Three roots: which one is the answer?' },
+    { q: 'What is the compressibility factor Z of CO₂ at 305 K and 74 bar? Give four decimal places.', trap: 'Right at the critical point: four decimals is false precision.' },
+    { q: 'Use the Peng–Robinson equation to find the molar volume of liquid water at 300 °C and 100 bar.', trap: 'A polar liquid: Peng–Robinson is about 28 % off.' },
+    { q: 'What is the density of propane at 25 °C and 50 bar?', trap: 'Propane boils at about 9.5 bar here, so it is a liquid.' },
+    { q: 'What is the molar volume of nitrogen at 300 K and 300 bar?', trap: 'Z is above 1 here: the molecules’ own size dominates.' },
+    { q: 'What is the density of ammonia at 50 °C and 50 bar?', trap: 'A hydrogen-bonding liquid: generalized methods are far off.' },
+    { q: 'What is the molar volume of methane at 250 K and 100 bar?', trap: 'Well above its critical pressure: Z is about 0.75.' },
+  ];
+
+  return { clean, parse, findFluid, candidates, check, QUESTIONS, toV, fromV, unitOf, inUnits, QUANTITY, UNIT_TEXT, fmt };
+});
+
+</script>
+<script>
+/* =====================================================================
+   phase-map.js — the Phase map tab of the Pure-Fluid PVT Solver.
+
+   A pressure–temperature diagram of the chosen fluid: the boiling curve up to the critical point,
+   the liquid, vapour, gas and supercritical regions, the near-critical zone, and the zones where the
+   ideal-gas law and the two-term virial equation work. The state can be dragged on the map or moved
+   with two sliders; at every position the solver re-runs all eight methods, so the phase, the best
+   answer and each method's grade update live. Two buttons sweep the state along an isobar or an
+   isotherm and draw Z along the way.
+
+   The pure helpers (map window, boiling curve, method zones) also run in Node for the tests.
+   ===================================================================== */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./thermo-core.js'));
+  else root.PhaseMap = factory(root.Thermo);
+})(typeof self !== 'undefined' ? self : this, function (T) {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     1. PURE PART
+     ------------------------------------------------------------------ */
+  // Triple-point temperatures, K (reference equations of state, CoolProp). The map starts here: below the
+  // triple point the solid can form, and none of the eight methods describes a solid.
+  const T_TRIPLE = {
+    methane: 90.69, ethane: 90.37, propane: 85.53, nbutane: 134.90, isobutane: 113.73, npentane: 143.47, nhexane: 177.83,
+    nheptane: 182.55, noctane: 216.37, ethylene: 103.99, propylene: 87.95, benzene: 278.67, toluene: 178.00, cyclohexane: 279.47,
+    argon: 83.81, nitrogen: 63.15, oxygen: 54.36, co: 68.16, co2: 216.59, hydrogen: 13.96,
+    h2s: 187.70, so2: 197.70, r134a: 169.85, acetone: 178.50, ammonia: 195.50, water: 273.16, methanol: 175.61, ethanol: 159.10,
+  };
+  const P_ATM = T.P_ATM;
+  // the solver's own tests: the ideal gas is "acceptable" up to 5 % error, the virial equation "recommended" within 2 % of Lee–Kesler
+  const ZONE_IDEAL = 0.05, ZONE_VIRIAL = 0.02;
+
+  /* the boiling pressure the solver itself uses: the fluid's Antoine equation when it has one, else Lee–Kesler */
+  function psat(fl, Tk) { return Tk < fl.Tc ? T.diagnose(fl, Tk, 1).Psat : null; }
+
+  /* boiling temperature at pressure P (the inverse of psat); null at or above Pc, or if it boils below Tmin */
+  function tsat(fl, P, Tmin) {
+    if (!(P > 0) || P >= fl.Pc) return null;
+    let lo = Tmin || 0.3 * fl.Tc, hi = fl.Tc * (1 - 1e-9);
+    if (psat(fl, lo) > P) return null;
+    for (let i = 0; i < 60; i++) { const m = 0.5 * (lo + hi); if (psat(fl, m) < P) lo = m; else hi = m; }
+    return 0.5 * (lo + hi);
+  }
+
+  /* the window of the map: T from the triple point (or from where the boiling curve enters the map) to 1.6 Tc;
+     P on a log scale from a whole decade below the lowest boiling pressure shown (at least 0.001 bar) to 5 Pc.
+     A state passed in is always kept inside. */
+  function ranges(fl, st) {
+    const Ttp = T_TRIPLE[fl.id] || null;
+    const T0 = Ttp || 0.5 * fl.Tc;
+    const P0 = psat(fl, T0);
+    let Plo = Math.max(1e-3, Math.pow(10, Math.floor(Math.log10(0.5 * Math.min(P0, 1)))));
+    let Tlo = T0;
+    const tIn = tsat(fl, Plo, 0.3 * fl.Tc);
+    if (tIn && tIn > Tlo) Tlo = tIn;
+    let Thi = 1.6 * fl.Tc, Phi = 5 * fl.Pc;
+    if (st && st.T > 0 && st.P > 0) {
+      if (st.T > 0.97 * Thi) Thi = 1.08 * st.T;
+      if (st.T < Tlo) Tlo = Math.max(1, st.T - 0.05 * (Thi - st.T));
+      if (st.P > 0.8 * Phi) Phi = 1.6 * st.P;
+      if (st.P < 1.3 * Plo) Plo = Math.pow(10, Math.floor(Math.log10(st.P / 1.3)));
+    }
+    return { Ttp, Tlo, Thi, Plo, Phi, Tcurve0: Math.max(Tlo, Ttp || Tlo) };
+  }
+
+  /* the boiling curve, from the start of the map to the critical point */
+  function curve(fl, rg, n) {
+    n = n || 160;
+    const a = rg.Tcurve0, pts = [];
+    for (let i = 0; i < n; i++) { const Tk = a + (fl.Tc - a) * i / n; pts.push([Tk, psat(fl, Tk)]); }
+    pts.push([fl.Tc, fl.Pc]);
+    return pts;
+  }
+
+  /* Where the ideal gas and the virial equation work: for each temperature, the highest pressure at which
+     the ideal gas is within 5 % of Lee–Kesler (error in V, as the solver grades it), and the highest at which
+     the two-term virial equation is within 2 % of Lee–Kesler. Below Tc the zones stop at the boiling curve;
+     they start at the triple point, since below it the solid is not modelled. */
+  function zones(fl, rg, n) {
+    n = n || 48;
+    const w = fl.omega, out = { ideal: [], virial: [] };
+    const lkZ = (Tr, Pr) => { const r = T.leeKesler(Tr, Pr, w, 'vapor'); return r ? r.Z : NaN; };
+    const okIdeal = (Tr, Pr, zl) => isFinite(zl) && zl > 0 && Math.abs(1 / zl - 1) <= ZONE_IDEAL;
+    const okVirial = (Tr, Pr, zl) => {
+      if (!(isFinite(zl) && zl > 0)) return false;
+      const v = T.virial2(Tr, Pr, w);
+      return v.physical && Math.abs(v.Z / zl - 1) <= ZONE_VIRIAL;
+    };
+    const K = 14;
+    for (let i = 0; i <= n; i++) {
+      const Tk = rg.Tcurve0 + (rg.Thi - rg.Tcurve0) * i / n, Tr = Tk / fl.Tc;
+      const top = Math.min(Tk < fl.Tc ? psat(fl, Tk) : Infinity, rg.Phi);
+      if (!(top > rg.Plo)) { out.ideal.push([Tk, rg.Plo]); out.virial.push([Tk, rg.Plo]); continue; }
+      const a = Math.log(rg.Plo), b = Math.log(top);
+      let fI = -1, fV = -1;                        // first grid point where each test fails
+      for (let k = 0; k <= K && (fI < 0 || fV < 0); k++) {
+        const Pr = Math.exp(a + (b - a) * k / K) / fl.Pc, zl = lkZ(Tr, Pr);
+        if (fI < 0 && !okIdeal(Tr, Pr, zl)) fI = k;
+        if (fV < 0 && !okVirial(Tr, Pr, zl)) fV = k;
+      }
+      const edge = (fk, ok) => {
+        if (fk < 0) return top;                    // works all the way up to the boiling curve (or the top of the map)
+        if (fk === 0) return rg.Plo;
+        let lo = a + (b - a) * (fk - 1) / K, hi = a + (b - a) * fk / K;
+        for (let j = 0; j < 10; j++) { const m = 0.5 * (lo + hi), Pr = Math.exp(m) / fl.Pc; if (ok(Tr, Pr, lkZ(Tr, Pr))) lo = m; else hi = m; }
+        return Math.exp(0.5 * (lo + hi));
+      };
+      out.ideal.push([Tk, edge(fI, okIdeal)]);
+      out.virial.push([Tk, edge(fV, okVirial)]);
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------------
+     2. INTERFACE (browser only)
+     ------------------------------------------------------------------ */
+  const METHODS = [['ideal', 'Ideal gas'], ['virial2', 'Virial'], ['lk', 'Lee–Kesler'], ['vdw', 'van der Waals'],
+    ['rk', 'Redlich–Kwong'], ['srk', 'SRK'], ['pr', 'Peng–Robinson'], ['rackett', 'Rackett']];
+  const SHORT = Object.fromEntries(METHODS);
+  const GRADE_TXT = { rec: 'Recommended', ok: 'Acceptable', caution: 'Caution', no: 'Not recommended', na: 'Not applicable' };
+  const GRADE_ICON = { rec: '✓', ok: '✓', caution: '!', no: '✗', na: '–' };
+  const PHASE = {
+    liquid: ['Liquid', 'P is above the boiling pressure, so the molecules are packed close together.'],
+    vapor: ['Vapour', 'P is below the boiling pressure: a gas that condenses if it is compressed enough.'],
+    saturation: ['Boiling', 'P equals the boiling pressure: liquid and vapour exist side by side.'],
+    gas: ['Gas', 'Above Tc no pressure can turn it into a liquid.'],
+    supercritical: ['Supercritical fluid', 'Above Tc and Pc: one dense phase that is neither a liquid nor a gas.'],
+    critical: ['Critical point', 'The boiling curve ends here: liquid and vapour become one and the same.'],
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fx = (v, d) => isFinite(v) ? Number(v).toFixed(d) : '–';
+  const sig = (v, d) => isFinite(v) ? Number(v).toPrecision(d) : '–';
+  const fz = z => !isFinite(z) ? '–' : z >= 0.1 ? z.toFixed(3) : z.toPrecision(3);
+  const pLabel = v => v >= 1 ? String(Math.round(v)) : String(+v.toPrecision(1));
+  function niceStep(span, parts) {
+    const raw = span / parts, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+  }
+
+  function mount(root, api) {
+    root.innerHTML = `
+      <div class="pm-head">
+        <div>
+          <h2>Phase map: move the state and watch every method react</h2>
+          <p class="muted">Pressure against temperature for the chosen fluid. Drag the orange dot, click anywhere on the map, or use the sliders. At every point the solver finds the phase and re-checks all eight methods.</p>
+        </div>
+        <label class="pm-fluid"><span class="lbl">Fluid</span><select id="pmFluid" aria-label="Fluid"></select></label>
+      </div>
+      <div class="pm-grid">
+        <div class="pm-left">
+          <div class="pm-box" id="pmBox"></div>
+          <div class="pm-legend" id="pmLegend"></div>
+          <div class="pm-sliders">
+            <div class="pm-sl">
+              <div class="pm-sl-top"><label for="pmT">Temperature</label><output id="pmTout" class="num" for="pmT"></output></div>
+              <div class="pm-rail"><input type="range" id="pmT"><div class="pm-notches" id="pmTn" aria-hidden="true"></div></div>
+            </div>
+            <div class="pm-sl">
+              <div class="pm-sl-top"><label for="pmP">Pressure <span class="hint">(log scale)</span></label><output id="pmPout" class="num" for="pmP"></output></div>
+              <div class="pm-rail"><input type="range" id="pmP"><div class="pm-notches" id="pmPn" aria-hidden="true"></div></div>
+            </div>
+          </div>
+          <div class="pm-path" id="pmPathBox" hidden>
+            <span class="lbl" id="pmPathL">Z along the path</span>
+            <svg id="pmPathSvg" role="img" aria-label="Z along the path"></svg>
+          </div>
+          <div class="pm-actions">
+            <button type="button" class="btn small secondary" id="pmHeat">▶ Heat at this pressure</button>
+            <button type="button" class="btn small secondary" id="pmPress">▶ Compress at this temperature</button>
+            <span class="pm-jump"><span class="hint">Jump to</span>
+              <button type="button" class="pm-link" id="pmCrit">critical point</button>
+              <button type="button" class="pm-link" id="pmNbp">boiling at 1 atm</button></span>
+            <label class="pm-toggle"><input type="checkbox" id="pmZones" checked> method zones</label>
+          </div>
+        </div>
+        <aside class="pm-read" id="pmRead" aria-label="The state on the map">
+          <div class="pm-phase" id="pmPhase"><span class="pm-pdot" aria-hidden="true"></span><b id="pmPhaseT">–</b></div>
+          <p class="pm-sub" id="pmPhaseS"></p>
+          <div class="pm-cond num" id="pmCond"></div>
+          <dl class="pm-kv">
+            <div><dt>Tr = T/Tc</dt><dd class="num" id="pmTr"></dd></div>
+            <div><dt>Pr = P/Pc</dt><dd class="num" id="pmPr"></dd></div>
+            <div><dt>Boiling P at this T</dt><dd class="num" id="pmPs"></dd></div>
+            <div><dt>Boiling T at this P</dt><dd class="num" id="pmTs"></dd></div>
+          </dl>
+          <div class="pm-best">
+            <span class="lbl" id="pmBestL">Best answer</span>
+            <div class="pm-bestrow"><span class="num pm-z" id="pmZ"></span><span class="num pm-v" id="pmV"></span></div>
+            <svg class="pm-zbar" viewBox="0 0 280 40" aria-hidden="true">
+              <rect class="pm-zb-track" x="8" y="17" width="264" height="8" rx="4"/>
+              <rect class="pm-zb-fill" id="pmZfill" x="8" y="17" width="0" height="8" rx="4"/>
+              <line class="pm-zb-one" id="pmZone" y1="11" y2="31"/>
+              <text class="pm-zb-t" id="pmZoneT" y="9" text-anchor="middle">Z = 1 (ideal gas)</text>
+              <text class="pm-zb-t" x="8" y="39">0</text>
+              <circle class="pm-zb-mk" id="pmZmk" cy="21" r="6"/>
+            </svg>
+            <p class="hint pm-ztxt" id="pmZtxt"></p>
+          </div>
+          <ul class="pm-meth" id="pmMeth"></ul>
+          <p class="pm-note" id="pmNote" hidden></p>
+          <button type="button" class="btn small" id="pmSolve">Full answer in the Solve tab →</button>
+        </aside>
+      </div>
+      <p class="sr-only" id="pmLive" aria-live="polite"></p>`;
+
+    const $ = id => root.querySelector('#' + id);
+    const box = $('pmBox'), sT = $('pmT'), sP = $('pmP'), fluidSel = $('pmFluid'), zonesChk = $('pmZones');
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'pm-svg'); svg.setAttribute('role', 'img');
+    box.appendChild(svg);
+    const methRows = {};
+    for (const [id, name] of METHODS) {
+      const li = document.createElement('li'); li.dataset.id = id;
+      li.innerHTML = `<i class="pm-gdot" aria-hidden="true"></i><span class="pm-mn">${esc(name)}</span><span class="pm-mz num"></span><span class="pm-mg"></span>`;
+      $('pmMeth').appendChild(li); methRows[id] = li;
+    }
+
+    let fl = null, rg = null, cv = null, zn = null, zKey = '', builtKey = '', G = null, dyn = null;
+    const st = { T: 300, P: 1 };
+    let anim = null, path = null, src = '', raf = 0, syncTimer = 0, lastLive = '', grades = {};
+    let tween = null, dragging = false, visible = false;
+
+    /* ---------------- building the map ---------------- */
+    const keyOf = f => [f.id, f.Tc, f.Pc, f.omega, f.cls].join('|');
+    const inside = s => rg && s.T >= rg.Tlo && s.T <= rg.Thi && s.P >= rg.Plo && s.P <= rg.Phi;
+    const valid = f => f && f.Tc > 0 && f.Pc > 0 && isFinite(f.omega);
+    let stepT = 0.1, decT = 1;
+
+    function rebuild(keep) {
+      rg = ranges(fl, keep || null);
+      cv = curve(fl, rg);
+      builtKey = keyOf(fl);
+      stepT = niceStep(rg.Thi - rg.Tlo, 1500);
+      decT = rg.Thi - rg.Tlo < 80 ? 2 : 1;
+      sT.min = rg.Tlo; sT.max = rg.Thi; sT.step = stepT;
+      sP.min = Math.log10(rg.Plo); sP.max = Math.log10(rg.Phi); sP.step = 0.001;
+      const tnb = tsat(fl, P_ATM, rg.Tcurve0);
+      const nbp = $('pmNbp');
+      nbp.disabled = !(tnb && tnb >= rg.Tlo && tnb <= rg.Thi && P_ATM >= rg.Plo);
+      nbp.title = nbp.disabled ? (rg.Ttp && psat(fl, rg.Ttp) > P_ATM ? `No liquid at 1 atm: at the triple point the boiling pressure is already ${sig(psat(fl, rg.Ttp), 2)} bar, so at 1 atm the solid turns straight into gas.` : 'The 1 atm boiling point is not on this map.') : `T = ${fx(tnb, 2)} K`;
+      scheduleZones();
+    }
+
+    function scheduleZones() {
+      const k = builtKey + '|' + [rg.Tlo, rg.Thi, rg.Plo, rg.Phi].map(v => v.toPrecision(6)).join(',');
+      if (k === zKey && zn) return;
+      zn = null; zKey = k;
+      setTimeout(() => { if (zKey !== k || !fl) return; zn = zones(fl, rg); if (visible) { draw(); render(); } }, 30);
+    }
+
+    function draw() {
+      if (!rg) return;
+      const W = Math.max(300, Math.round(box.clientWidth || 640));
+      const H = Math.round(Math.min(480, Math.max(300, W * 0.62)));
+      const ml = 58, mr = 18, mt = 16, mb = 40, pw = W - ml - mr, ph = H - mt - mb;
+      const lP0 = Math.log10(rg.Plo), lP1 = Math.log10(rg.Phi);
+      const x = Tk => ml + (Tk - rg.Tlo) / (rg.Thi - rg.Tlo) * pw;
+      const y = P => mt + (1 - (Math.log10(P) - lP0) / (lP1 - lP0)) * ph;
+      const ix = px => rg.Tlo + (px - ml) / pw * (rg.Thi - rg.Tlo);
+      const iy = py => Math.pow(10, lP0 + (1 - (py - mt) / ph) * (lP1 - lP0));
+      G = { W, H, ml, mt, pw, ph, x, y, ix, iy };
+      const top = mt - 4, bot = mt + ph + 4, Tc = fl.Tc, Pc = fl.Pc, narrow = W < 560;
+      const P = (Tk, Pb) => `${x(Tk).toFixed(1)} ${y(Math.max(Pb, rg.Plo * 1e-3)).toFixed(1)}`;
+      const curveD = cv.map((p, i) => (i ? 'L' : 'M') + P(p[0], p[1])).join(' ');
+      const rev = cv.slice().reverse().map(p => 'L' + P(p[0], p[1])).join(' ');
+      const c0 = rg.Tcurve0;
+      let s = `<defs>
+        <clipPath id="pmClip"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath>
+        <pattern id="pmHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" class="pm-hatch"/></pattern>
+        <pattern id="pmHatchS" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="6" class="pm-hatch-s"/></pattern>
+        <linearGradient id="pmSCg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" class="pm-sc0"/><stop offset="1" class="pm-sc1"/></linearGradient>
+        <filter id="pmGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+      </defs>
+      <g clip-path="url(#pmClip)">
+        <path class="pm-r-liq" d="M${x(c0).toFixed(1)} ${top} L${x(Tc).toFixed(1)} ${top} L${P(Tc, Pc)} ${rev} Z"/>
+        <path class="pm-r-vap" d="M${x(c0).toFixed(1)} ${bot} ${cv.map(p => 'L' + P(p[0], p[1])).join(' ')} L${x(Tc).toFixed(1)} ${bot} Z"/>
+        <rect class="pm-r-gas" x="${x(Tc)}" y="${y(Pc)}" width="${Math.max(0, x(rg.Thi) - x(Tc))}" height="${Math.max(0, bot - y(Pc))}"/>
+        <rect class="pm-r-sc" x="${x(Tc)}" y="${top}" width="${Math.max(0, x(rg.Thi) - x(Tc))}" height="${Math.max(0, y(Pc) - top)}"/>`;
+      if (rg.Ttp && rg.Tlo < rg.Ttp) s += `<rect class="pm-r-solid" x="${ml}" y="${top}" width="${Math.max(0, x(rg.Ttp) - ml)}" height="${bot - top}"/>`;
+      // grid
+      const tStep = niceStep(rg.Thi - rg.Tlo, narrow ? 5 : 8);
+      const tTicks = []; for (let t = Math.ceil(rg.Tlo / tStep) * tStep; t <= rg.Thi + 1e-9; t += tStep) tTicks.push(t);
+      const pDec = []; for (let d = Math.ceil(lP0 - 1e-9); d <= lP1 + 1e-9; d++) pDec.push(Math.pow(10, d));
+      s += tTicks.map(t => `<line class="pm-gl" x1="${x(t)}" x2="${x(t)}" y1="${mt}" y2="${mt + ph}"/>`).join('');
+      s += pDec.map(p => `<line class="pm-gl" x1="${ml}" x2="${ml + pw}" y1="${y(p)}" y2="${y(p)}"/>`).join('');
+      // 1 atm
+      if (P_ATM > rg.Plo && P_ATM < rg.Phi) s += `<line class="pm-atm" x1="${ml}" x2="${ml + pw}" y1="${y(P_ATM)}" y2="${y(P_ATM)}"/><text class="pm-small" x="${ml + 5}" y="${y(P_ATM) - 4}">1 atm</text>`;
+      // method zones
+      if (zn && zonesChk.checked) {
+        for (const [k, cls] of [['virial', 'vir'], ['ideal', 'ideal']]) {
+          const pts = zn[k];
+          s += `<path class="pm-z-${cls}" d="M${x(pts[0][0]).toFixed(1)} ${bot} ${pts.map(p => 'L' + P(p[0], p[1])).join(' ')} L${x(pts[pts.length - 1][0]).toFixed(1)} ${bot} Z"/>`;
+          s += `<path class="pm-zl-${cls}" d="${pts.map((p, i) => (i ? 'L' : 'M') + P(p[0], p[1])).join(' ')}"/>`;
+        }
+      }
+      // near-critical zone
+      const ncx = x(0.95 * Tc), ncy = y(1.5 * Pc);
+      s += `<rect class="pm-nc" x="${ncx}" y="${ncy}" width="${x(1.1 * Tc) - ncx}" height="${y(0.7 * Pc) - ncy}"/>`;
+      // Tc and Pc lines, boiling curve
+      s += `<line class="pm-crit-line" x1="${x(Tc)}" x2="${x(Tc)}" y1="${top}" y2="${y(Pc)}"/>
+        <line class="pm-crit-line" x1="${x(Tc)}" x2="${ml + pw + 4}" y1="${y(Pc)}" y2="${y(Pc)}"/>
+        <path class="pm-curve-glow" d="${curveD}" filter="url(#pmGlow)"/>
+        <path class="pm-curve" d="${curveD}"/>
+      </g>`;
+      // region labels
+      const rl = (Tk, Pb, txt) => `<text class="pm-rl" x="${x(Tk).toFixed(1)}" y="${y(Pb).toFixed(1)}" text-anchor="middle">${txt}</text>`;
+      const tL = c0 + 0.32 * (Tc - c0), tV = c0 + 0.7 * (Tc - c0);
+      const pL = Math.sqrt(Math.max(psat(fl, tL), rg.Plo) * rg.Phi);
+      const pVs = psat(fl, tV);
+      const pV = pVs > rg.Plo * 8 ? Math.sqrt(rg.Plo * pVs) : null;
+      const tR = Tc + 0.55 * (rg.Thi - Tc);
+      s += rl(tL, pL, 'LIQUID');
+      if (pV) s += rl(tV, pV, 'VAPOUR');
+      s += rl(tR, Math.sqrt(rg.Plo * Pc), 'GAS');
+      if (y(Pc) - mt > 22) s += rl(tR, Math.sqrt(Pc * rg.Phi), narrow ? 'SUPERCRITICAL' : 'SUPERCRITICAL FLUID');
+      if (rg.Ttp && rg.Tlo < rg.Ttp && x(rg.Ttp) - ml > 16) s += `<text class="pm-small pm-solid-t" transform="translate(${((ml + x(rg.Ttp)) / 2 + 4).toFixed(1)} ${(mt + ph / 2).toFixed(1)}) rotate(-90)" text-anchor="middle">solid may form · not modelled</text>`;
+      // curve label, written along the curve
+      const iL = cv.findIndex(p => p[1] > rg.Plo * 4);
+      if (iL >= 0) {
+        const i = Math.min(cv.length - 3, Math.round(iL + 0.55 * (cv.length - 1 - iL)));
+        const a = cv[i - 2] || cv[i], b = cv[i + 2];
+        const ang = Math.atan2(y(b[1]) - y(a[1]), x(b[0]) - x(a[0])) * 180 / Math.PI;
+        s += `<text class="pm-curve-t" transform="translate(${x(cv[i][0]).toFixed(1)} ${y(cv[i][1]).toFixed(1)}) rotate(${ang.toFixed(1)}) translate(0 -7)" text-anchor="middle">boiling curve</text>`;
+      }
+      // axes
+      s += `<rect class="pm-frame" x="${ml}" y="${mt}" width="${pw}" height="${ph}"/>`;
+      s += tTicks.map(t => `<text class="pm-tick" x="${x(t)}" y="${mt + ph + 15}" text-anchor="middle">${+t.toFixed(6)}</text>`).join('');
+      s += pDec.map(p => `<text class="pm-tick" x="${ml - 6}" y="${y(p) + 4}" text-anchor="end">${pLabel(p)}</text>`).join('');
+      for (let d = Math.floor(lP0); d <= Math.ceil(lP1); d++) for (let m = 2; m <= 9; m++) {
+        const p = m * Math.pow(10, d); if (p > rg.Plo && p < rg.Phi) s += `<line class="pm-minor" x1="${ml - 4}" x2="${ml}" y1="${y(p)}" y2="${y(p)}"/>`;
+      }
+      s += `<text class="pm-axis" x="${ml + pw / 2}" y="${H - 5}" text-anchor="middle">Temperature T (K)</text>
+        <text class="pm-axis" transform="translate(14 ${mt + ph / 2}) rotate(-90)" text-anchor="middle">Pressure P (bar)</text>`;
+      // Tc, Pc, critical point, triple point, normal boiling point
+      s += `<text class="pm-small pm-crit-t" x="${x(Tc) - 5}" y="${mt + 12}" text-anchor="end">Tc ${fx(Tc, Tc < 100 ? 2 : 1)} K</text>`;
+      if (!narrow) s += `<text class="pm-small pm-crit-t" x="${ml + pw - 5}" y="${y(Pc) - 5}" text-anchor="end">Pc ${sig(Pc, 4)} bar</text>`;
+      if (rg.Ttp && rg.Ttp >= rg.Tlo) {
+        const pt = psat(fl, rg.Ttp);
+        if (pt >= rg.Plo) s += `<circle class="pm-pt" cx="${x(rg.Ttp)}" cy="${y(pt)}" r="3.5"/><text class="pm-small" x="${x(rg.Ttp) + 7}" y="${y(pt) + 13}">triple point</text>`;
+      }
+      const tnb = tsat(fl, P_ATM, rg.Tcurve0);
+      if (tnb && tnb >= rg.Tlo && P_ATM >= rg.Plo) s += `<circle class="pm-pt nbp" cx="${x(tnb)}" cy="${y(P_ATM)}" r="3.5"/>` + (narrow ? '' : `<text class="pm-small" x="${x(tnb) + 7}" y="${y(P_ATM) + 13}">boils at 1 atm: ${fx(tnb, 1)} K</text>`);
+      s += `<circle class="pm-cp-ring" cx="${x(Tc)}" cy="${y(Pc)}" r="6"/><circle class="pm-cp" cx="${x(Tc)}" cy="${y(Pc)}" r="5"/>
+        <text class="pm-small pm-cp-t" x="${x(Tc) - 9}" y="${y(Pc) - 8}" text-anchor="end">critical point</text>`;
+      // moving parts
+      s += `<line class="pm-trail" id="pmTrail" visibility="hidden"/>
+        <line class="pm-cross" id="pmVx"/><line class="pm-cross" id="pmHy"/>
+        <g class="pm-tag" id="pmTagX"><rect height="18" rx="4"/><text text-anchor="middle"></text></g>
+        <g class="pm-tag" id="pmTagY"><rect height="18" rx="4"/><text text-anchor="end"></text></g>
+        <g class="pm-mk-g" id="pmMk"><circle class="pm-halo" r="16"/><circle class="pm-mk" r="8"/></g>`;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('width', W); svg.setAttribute('height', H);
+      svg.setAttribute('aria-label', `Phase map of ${fl.name}: pressure against temperature, with the boiling curve, the critical point at ${fx(Tc, 1)} K and ${sig(Pc, 4)} bar, and your state.`);
+      svg.innerHTML = s;
+      const q = id => svg.querySelector('#' + id);
+      dyn = { trail: q('pmTrail'), vx: q('pmVx'), hy: q('pmHy'), tagX: q('pmTagX'), tagY: q('pmTagY'), mk: q('pmMk') };
+      // legend under the map
+      $('pmLegend').innerHTML = `<span><i class="pm-lg-curve"></i>boiling curve</span>` +
+        (zonesChk.checked ? `<span><i class="pm-lg-ideal"></i>ideal gas within 5 % of Lee–Kesler</span><span><i class="pm-lg-vir"></i>virial equation within 2 %</span>` : '') +
+        `<span><i class="pm-lg-nc"></i>near-critical: every method uncertain</span>` +
+        (zonesChk.checked && !zn ? `<span class="hint">working out the method zones…</span>` : '');
+    }
+
+    /* ---------------- the moving state ---------------- */
+    function clamp() {
+      st.T = Math.min(rg.Thi, Math.max(rg.Tlo, st.T));
+      st.P = Math.min(rg.Phi, Math.max(rg.Plo, st.P));
+    }
+    function requestRender() { if (!raf) raf = requestAnimationFrame(render); }
+
+    function render() {
+      raf = 0;
+      if (!fl || !G || !dyn) return;
+      clamp();
+      let s = null;
+      try { s = T.solveTP(fl, st.T, st.P); } catch (e) { s = null; }
+      const { x, y, ml, mt, pw, ph } = G;
+      const px = x(st.T), py = y(st.P);
+      // marker, crosshair and the value tags on the axes
+      dyn.mk.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)})`);
+      dyn.vx.setAttribute('x1', px); dyn.vx.setAttribute('x2', px); dyn.vx.setAttribute('y1', py); dyn.vx.setAttribute('y2', mt + ph);
+      dyn.hy.setAttribute('x1', ml); dyn.hy.setAttribute('x2', px); dyn.hy.setAttribute('y1', py); dyn.hy.setAttribute('y2', py);
+      const tx = `${fx(st.T, decT)} K`, ty = sig(st.P, 4);
+      const wx = tx.length * 6.8 + 12, wy = ty.length * 6.8 + 10;
+      const cxT = Math.min(ml + pw - wx / 2, Math.max(ml + wx / 2, px));
+      dyn.tagX.setAttribute('transform', `translate(${cxT.toFixed(1)} ${mt + ph + 3})`);
+      dyn.tagX.firstChild.setAttribute('x', -wx / 2); dyn.tagX.firstChild.setAttribute('width', wx);
+      dyn.tagX.lastChild.setAttribute('y', 13); dyn.tagX.lastChild.textContent = tx;
+      dyn.tagY.setAttribute('transform', `translate(${ml - 3} ${Math.min(mt + ph - 9, Math.max(mt + 9, py)).toFixed(1)})`);
+      dyn.tagY.firstChild.setAttribute('x', -wy); dyn.tagY.firstChild.setAttribute('y', -9); dyn.tagY.firstChild.setAttribute('width', wy);
+      dyn.tagY.lastChild.setAttribute('x', -5); dyn.tagY.lastChild.setAttribute('y', 4); dyn.tagY.lastChild.textContent = ty;
+      if (path) {
+        const a = path.kind === 'heat' ? [x(rg.Tlo), py, px, py] : [px, y(rg.Plo), px, py];
+        dyn.trail.setAttribute('x1', a[0]); dyn.trail.setAttribute('y1', a[1]); dyn.trail.setAttribute('x2', a[2]); dyn.trail.setAttribute('y2', a[3]);
+        dyn.trail.setAttribute('visibility', 'visible');
+      } else dyn.trail.setAttribute('visibility', 'hidden');
+      // sliders
+      if (src !== 'T') sT.value = st.T;
+      if (src !== 'P') sP.value = Math.log10(st.P);
+      src = '';
+      $('pmTout').textContent = `${fx(st.T, decT)} K · ${fx(st.T - 273.15, 1)} °C`;
+      $('pmPout').textContent = `${sig(st.P, 4)} bar`;
+      sT.setAttribute('aria-valuetext', `${fx(st.T, decT)} kelvin`);
+      sP.setAttribute('aria-valuetext', `${sig(st.P, 4)} bar`);
+      paintSliders();
+      readout(s);
+      if (path) drawPath();
+    }
+
+    /* the slider tracks are coloured by phase along the current isobar / isotherm, with notches at Tc, Pc and boiling */
+    const pos = (v, a, b) => Math.min(100, Math.max(0, 100 * (v - a) / (b - a)));
+    const notch = (p, txt, cls) => `<span class="pm-notch ${cls || ''}" style="left:calc(10px + (100% - 20px) * ${(p / 100).toFixed(4)})">${txt}</span>`;
+    function paintSliders() {
+      const Tc = fl.Tc, Pc = fl.Pc;
+      const L = 'var(--pm-liq)', V = 'var(--pm-vap)', Gc = 'var(--pm-gas)', SC = 'var(--pm-sc)';
+      const seg = parts => 'linear-gradient(to right,' + parts.map(([c, a, b]) => `${c} ${a.toFixed(2)}%, ${c} ${b.toFixed(2)}%`).join(',') + ')';
+      // temperature slider at this pressure
+      const pTc = pos(Tc, rg.Tlo, rg.Thi);
+      let nT = notch(pTc, 'Tc');
+      if (st.P >= Pc) sT.style.setProperty('--track', seg([[L, 0, pTc], [SC, pTc, 100]]));
+      else {
+        const tb = tsat(fl, st.P, rg.Tcurve0), pb = tb ? pos(tb, rg.Tlo, rg.Thi) : 0;
+        sT.style.setProperty('--track', seg([[L, 0, pb], [V, pb, pTc], [Gc, pTc, 100]]));
+        if (tb && pb > 0 && Math.abs(pb - pTc) > 6) nT += notch(pb, 'boils', 'sat');
+      }
+      $('pmTn').innerHTML = nT;
+      // pressure slider at this temperature
+      const lp = v => Math.log10(v), a = lp(rg.Plo), b = lp(rg.Phi);
+      const pPc = pos(lp(Pc), a, b);
+      let nP = notch(pPc, 'Pc');
+      if (st.T >= Tc) sP.style.setProperty('--track', seg([[Gc, 0, pPc], [SC, pPc, 100]]));
+      else {
+        const ps = psat(fl, st.T), pb = pos(lp(ps), a, b);
+        sP.style.setProperty('--track', seg([[V, 0, pb], [L, pb, 100]]));
+        if (pb > 0 && pb < 100 && Math.abs(pb - pPc) > 6) nP += notch(pb, 'boils', 'sat');
+      }
+      $('pmPn').innerHTML = nP;
+    }
+
+    function readout(s) {
+      if (!s) { $('pmPhaseT').textContent = '–'; return; }
+      const d = s.diagnosis;
+      const ph = Math.abs(d.Tr - 1) < 0.003 && Math.abs(d.Pr - 1) < 0.003 ? 'critical' : d.phase;
+      $('pmRead').dataset.p = ph;
+      $('pmPhaseT').textContent = PHASE[ph][0];
+      $('pmPhaseS').textContent = PHASE[ph][1];
+      $('pmCond').textContent = `${fx(st.T, decT)} K (${fx(st.T - 273.15, 1)} °C) · ${sig(st.P, 4)} bar`;
+      $('pmTr').textContent = fx(d.Tr, 3);
+      $('pmPr').textContent = fx(d.Pr, 3);
+      $('pmPs').textContent = d.Psat != null ? `${sig(d.Psat, 4)} bar` : 'none (above Tc)';
+      const tb = tsat(fl, st.P, 0.3 * fl.Tc);
+      $('pmTs').textContent = st.P >= fl.Pc ? 'none (above Pc)' : tb ? `${fx(tb, decT)} K` : '–';
+      // best answer and the Z gauge
+      const best = s.best, Z = best ? best.Z : NaN;
+      $('pmBestL').textContent = best ? `Best answer · ${SHORT[best.id] || best.name}` : 'Best answer';
+      $('pmZ').textContent = `Z = ${fz(Z)}`;
+      $('pmV').textContent = best && isFinite(best.V) ? `V = ${sig(best.V, 4)} cm³/mol · ρ = ${sig(best.rho, 4)} kg/m³` : '';
+      const zmax = Math.max(1.2, isFinite(Z) ? Z * 1.05 : 0), zx = z => 8 + 264 * Math.min(1, Math.max(0, z / zmax));
+      $('pmZfill').setAttribute('width', Math.max(0, zx(Z) - 8).toFixed(1));
+      $('pmZmk').setAttribute('cx', zx(Z).toFixed(1));
+      $('pmZone').setAttribute('x1', zx(1)); $('pmZone').setAttribute('x2', zx(1)); $('pmZoneT').setAttribute('x', Math.min(zx(1), 224));
+      $('pmZtxt').textContent = ph === 'saturation' ? 'Liquid and vapour have very different Z here.'
+        : ph === 'liquid' ? 'Z ≪ 1: a liquid, molecules packed close together.'
+        : !isFinite(Z) ? '' : Z < 0.95 ? 'Z < 1: attraction pulls the volume below ideal.'
+        : Z <= 1.05 ? 'Z ≈ 1: the molecules barely feel each other.'
+        : 'Z > 1: the molecules’ own size pushes the volume up.';
+      // the eight methods
+      for (const [id] of METHODS) {
+        const li = methRows[id], r = s.results.find(q => q.id === id);
+        const gr = r ? r.grade : 'na';
+        li.className = 'g-' + gr + (best && best.id === id ? ' is-best' : '');
+        li.querySelector('.pm-mz').textContent = r && gr !== 'na' ? fz(r.Z) : '–';
+        li.querySelector('.pm-mg').textContent = `${GRADE_ICON[gr]} ${GRADE_TXT[gr]}`;
+        li.title = r && r.reason ? r.reason : 'Not used for this state';
+        li.setAttribute('aria-label', `${SHORT[id]}: ${GRADE_TXT[gr]}${r && gr !== 'na' ? ', Z = ' + fz(r.Z) : ''}`);
+        if (grades[id] && grades[id] !== gr) { li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
+        grades[id] = gr;
+      }
+      // notes
+      const notes = [];
+      if (d.nearCritical) notes.push('Near the critical point: Z changes very fast with T and P here, so every method is uncertain and the honest answer is a range.');
+      if (rg.Ttp && st.T < rg.Ttp) notes.push(`Below the triple point (${fx(rg.Ttp, 1)} K) the real fluid can be solid, which none of the methods describe.`);
+      if (fl.id === 'custom') notes.push('Your own fluid: change its constants in the Solve tab.');
+      $('pmNote').hidden = !notes.length; $('pmNote').textContent = notes.join(' ');
+      const live = `${PHASE[ph][0]}. Best answer ${best ? SHORT[best.id] || best.name : ''}.`;
+      if (live !== lastLive) { $('pmLive').textContent = live; lastLive = live; }
+      // record the path while sweeping
+      if (anim && path) {
+        const v = path.kind === 'heat' ? st.T : Math.log10(st.P);
+        const prev = path.pts.length ? path.pts[path.pts.length - 1] : null;
+        if (prev && prev[2] !== d.phase) {
+          const pair = prev[2] + '>' + d.phase;
+          const lab = { 'liquid>saturation': 'boils', 'liquid>vapor': 'boils', 'vapor>saturation': 'condenses', 'vapor>liquid': 'condenses', 'vapor>gas': 'Tc', 'liquid>supercritical': 'Tc', 'gas>supercritical': 'Pc' }[pair];
+          if (lab) path.marks.push([v, lab]);
+        }
+        path.pts.push([v, Z, d.phase]);
+      }
+    }
+
+    /* Z along the swept path: a jump where the fluid boils or condenses, a smooth change above the critical point */
+    function drawPath() {
+      const pb = $('pmPathBox'), sv = $('pmPathSvg');
+      if (!path || !path.pts.length) { pb.hidden = true; return; }
+      pb.hidden = false;
+      const W = Math.max(260, Math.round(pb.clientWidth - 22)), H = 112, l = 26, r = 10, t = 10, b = 22;
+      sv.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      const heat = path.kind === 'heat';
+      const xs = heat ? [rg.Tlo, rg.Thi] : [Math.log10(rg.Plo), Math.log10(rg.Phi)];
+      const zs = path.pts.map(p => p[1]).filter(isFinite);
+      const zmax = Math.max(1.1, zs.length ? Math.max(...zs) * 1.05 : 1.1);
+      const X = v => l + (v - xs[0]) / (xs[1] - xs[0]) * (W - l - r), Y = z => t + (1 - z / zmax) * (H - t - b);
+      let d = '', pen = false;
+      for (const [v, z] of path.pts) { if (!isFinite(z)) { pen = false; continue; } d += (pen ? 'L' : 'M') + X(v).toFixed(1) + ' ' + Y(z).toFixed(1); pen = true; }
+      const last = path.pts[path.pts.length - 1];
+      const fmt = v => heat ? `${Math.round(v)} K` : `${pLabel(Math.pow(10, v))} bar`;
+      $('pmPathL').textContent = heat ? `Z along the path: heating at ${sig(path.fixed, 3)} bar` : `Z along the path: compressing at ${fx(path.fixed, 1)} K`;
+      sv.innerHTML = `<line class="pm-pa-ax" x1="${l}" x2="${W - r}" y1="${Y(0)}" y2="${Y(0)}"/>
+        <line class="pm-pa-one" x1="${l}" x2="${W - r}" y1="${Y(1)}" y2="${Y(1)}"/>
+        <text class="pm-pa-t" x="${l - 4}" y="${Y(1) + 3}" text-anchor="end">1</text><text class="pm-pa-t" x="${l - 4}" y="${Y(0) + 3}" text-anchor="end">0</text>
+        ${path.marks.map(([v, lab]) => `<line class="pm-pa-mark" x1="${X(v)}" x2="${X(v)}" y1="${t}" y2="${Y(0)}"/><text class="pm-pa-t mark" x="${X(v) + 3}" y="${t + 8}">${lab}</text>`).join('')}
+        <path class="pm-pa-line" d="${d}"/>
+        ${isFinite(last[1]) ? `<circle class="pm-pa-dot" cx="${X(last[0])}" cy="${Y(last[1])}" r="3.5"/>` : ''}
+        <text class="pm-pa-t" x="${l}" y="${H - 6}">${fmt(xs[0])}</text><text class="pm-pa-t" x="${W - r}" y="${H - 6}" text-anchor="end">${fmt(xs[1])}</text>
+        <text class="pm-pa-t" x="${(l + W - r) / 2}" y="${H - 6}" text-anchor="middle">${heat ? 'T →' : 'P (log) →'}</text>`;
+    }
+
+    /* ---------------- moving: drag, click, tween, sweep ---------------- */
+    function stopAnim() {
+      if (anim) { cancelAnimationFrame(anim.raf); anim = null; }
+      if (tween) { cancelAnimationFrame(tween.raf); tween = null; }
+      $('pmHeat').textContent = '▶ Heat at this pressure'; $('pmPress').textContent = '▶ Compress at this temperature';
+    }
+    function clearPath() { path = null; $('pmPathBox').hidden = true; }
+    function syncRail(now) {
+      clearTimeout(syncTimer);
+      const go = () => api.setTP(st.T, st.P);
+      if (now) go(); else syncTimer = setTimeout(go, 160);
+    }
+    function tweenTo(T1, P1, ms) {
+      stopAnim();
+      const T0 = st.T, l0 = Math.log(st.P), l1 = Math.log(P1), t0 = performance.now(), dur = ms || 240;
+      const step = now => {
+        const u = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - u, 3);
+        st.T = T0 + (T1 - T0) * e; st.P = Math.exp(l0 + (l1 - l0) * e);
+        render();
+        if (u < 1) tween.raf = requestAnimationFrame(step); else { tween = null; syncRail(true); }
+      };
+      tween = { raf: requestAnimationFrame(step) };
+    }
+    function sweep(kind) {
+      const same = anim && anim.kind === kind;
+      stopAnim();
+      if (same) { syncRail(true); return; }
+      const fixed = kind === 'heat' ? st.P : st.T;
+      path = { kind, fixed, pts: [], marks: [] };
+      const a = kind === 'heat' ? rg.Tlo : Math.log(rg.Plo), b = kind === 'heat' ? rg.Thi : Math.log(rg.Phi);
+      const t0 = performance.now(), dur = 7000;
+      const step = now => {
+        const u = Math.min(1, (now - t0) / dur);
+        if (kind === 'heat') st.T = a + (b - a) * u; else st.P = Math.exp(a + (b - a) * u);
+        render();
+        if (u < 1) anim.raf = requestAnimationFrame(step);
+        else { anim = null; $(kind === 'heat' ? 'pmHeat' : 'pmPress').textContent = kind === 'heat' ? '↻ Heat again' : '↻ Compress again'; syncRail(true); }
+      };
+      anim = { kind, raf: requestAnimationFrame(step) };
+      $(kind === 'heat' ? 'pmHeat' : 'pmPress').textContent = '■ Stop';
+    }
+
+    function toData(e) {
+      const r = svg.getBoundingClientRect();
+      const px = (e.clientX - r.left) * G.W / r.width, py = (e.clientY - r.top) * G.H / r.height;
+      return { px: Math.min(G.ml + G.pw, Math.max(G.ml, px)), py: Math.min(G.mt + G.ph, Math.max(G.mt, py)), inside: px >= G.ml - 8 && px <= G.ml + G.pw + 8 && py >= G.mt - 8 && py <= G.mt + G.ph + 8 };
+    }
+    svg.addEventListener('pointerdown', e => {
+      if (!G || e.button > 0) return;
+      const p = toData(e); if (!p.inside) return;
+      e.preventDefault();
+      clearPath();
+      dragging = true; svg.setPointerCapture(e.pointerId); svg.classList.add('is-dragging');
+      const far = Math.hypot(p.px - G.x(st.T), p.py - G.y(st.P)) > 20;
+      if (far) tweenTo(G.ix(p.px), G.iy(p.py), 220); else stopAnim();
+    });
+    svg.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const p = toData(e);
+      if (tween) { cancelAnimationFrame(tween.raf); tween = null; }
+      st.T = G.ix(p.px); st.P = G.iy(p.py);
+      requestRender(); syncRail();
+    });
+    const endDrag = e => { if (!dragging) return; dragging = false; svg.classList.remove('is-dragging'); try { svg.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ } if (!tween) syncRail(true); };
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+
+    sT.addEventListener('input', () => { stopAnim(); clearPath(); st.T = +sT.value; src = 'T'; requestRender(); syncRail(); });
+    sP.addEventListener('input', () => { stopAnim(); clearPath(); st.P = +Math.pow(10, +sP.value).toPrecision(4); src = 'P'; requestRender(); syncRail(); });
+    sT.addEventListener('change', () => syncRail(true));
+    sP.addEventListener('change', () => syncRail(true));
+    $('pmHeat').addEventListener('click', () => sweep('heat'));
+    $('pmPress').addEventListener('click', () => sweep('press'));
+    $('pmCrit').addEventListener('click', () => { clearPath(); tweenTo(fl.Tc, fl.Pc, 500); });
+    $('pmNbp').addEventListener('click', () => { const tb = tsat(fl, P_ATM, rg.Tcurve0); if (tb) { clearPath(); tweenTo(tb, P_ATM, 500); } });
+    zonesChk.addEventListener('change', () => { draw(); render(); });
+    $('pmSolve').addEventListener('click', () => { stopAnim(); syncRail(true); api.openSolve(); });
+    fluidSel.addEventListener('change', () => {
+      // keep the reduced state (Tr, Pr): corresponding states puts the new fluid in the same place on the map
+      stopAnim(); clearPath();
+      const Tr = st.T / fl.Tc, Pr = st.P / fl.Pc;
+      api.setFluid(fluidSel.value);
+      const s = api.state();
+      if (!valid(s.fluid)) { message(); return; }
+      fl = s.fluid; grades = {};
+      rebuild(null);
+      st.T = Tr * fl.Tc; st.P = Pr * fl.Pc; clamp();
+      draw(); render(); syncRail(true);
+    });
+
+    function message() {
+      svg.innerHTML = '';
+      G = null; dyn = null;
+      $('pmLegend').innerHTML = '<span class="callout warn">Enter a valid fluid (positive Tc and Pc, a sensible ω) in the Solve tab to see its phase map.</span>';
+    }
+
+    /* ---------------- public ---------------- */
+    function show() {
+      visible = true;
+      fluidSel.innerHTML = api.fluidOptions(); fluidSel.value = api.fluidValue();
+      const s = api.state();
+      if (!valid(s.fluid)) { fl = null; message(); return; }
+      const moved = s.ok && (Math.abs(s.T - st.T) > 1e-6 || Math.abs(s.P / st.P - 1) > 1e-6);
+      fl = s.fluid;
+      if (s.ok) { st.T = s.T; st.P = s.P; }
+      if (keyOf(fl) !== builtKey || !inside(st)) { grades = {}; rebuild(s.ok ? st : null); }
+      if (moved) clearPath();
+      draw(); render();
+    }
+    function hide() {
+      const moving = anim || tween;
+      visible = false; stopAnim();
+      if (moving) syncRail(true);          // the Solve tab shows where the dot stopped
+    }
+    function resize() { if (visible && fl) { draw(); render(); } }
+    return { show, hide, resize };
+  }
+
+  return { T_TRIPLE, ZONE_IDEAL, ZONE_VIRIAL, psat, tsat, ranges, curve, zones, mount };
 });
 
 </script>
@@ -1606,6 +2984,7 @@ details.ext[open] summary { margin-bottom: 4px; }
   const S = { mode: 'TP', omegaMode: 'db', tab: 'solve', pMaxManual: false };
   let current = null;   // last (T, P) solution
   let fluid = null;
+  let pm = null;        // the Phase map tab (phase-map.js)
 
   /* ---------------- fluid list ---------------- */
   const GROUPS = [
@@ -1674,7 +3053,7 @@ details.ext[open] summary { margin-bottom: 4px; }
     document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
     for (const id of ['pMax', 'prMax', 'showVirialBoundary', 'pvEos', 'pvDome', 'pvLK']) $(id).addEventListener('change', () => drawPlots());
     $('pMax').addEventListener('input', () => { S.pMaxManual = true; });
-    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (S.tab === 'plots') drawPlots(); }, 150); });
+    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (S.tab === 'plots') drawPlots(); if (S.tab === 'map' && pm) pm.resize(); if (S.tab === 'ai' && AIS.res && AIS.res.ok) renderAIVerdict(AIS.res); }, 150); });
     onFluidChange();
   }
   function onFluidChange() {
@@ -1692,11 +3071,33 @@ details.ext[open] summary { margin-bottom: 4px; }
     setOmegaMode('db');
     if (Vcm3 != null) { $('Vunit').value = 'cm3mol'; $('V').value = Vcm3; setMode('TV'); } else { $('Punit').value = 'bar'; $('P').value = Pbar; setMode('TP'); }
   }
+  /* the state the solver is showing, as (fluid, T, P); in T–V mode P comes from the volume */
+  function solverState() {
+    const fl = fluid || currentFluid();
+    const Tk = toK(+$('T').value, $('Tunit').value);
+    let Pb = null;
+    if (S.mode === 'TP') Pb = toBar(+$('P').value, $('Punit').value);
+    else if (Tk > 0 && fl.Tc > 0) {
+      const tv = T.solveTV(fl, Tk, toCm3mol(+$('V').value, $('Vunit').value, fl.M));
+      const lk = tv.results.find(r => r.id === 'lk');
+      Pb = tv.twoPhase ? tv.twoPhase.Psat : lk && isFinite(lk.P) ? lk.P : tv.results[0].P;
+    }
+    return { fluid: fl, T: Tk, P: Pb, ok: Tk > 0 && Pb > 0 };
+  }
+  /* the phase map moves the state: write T and P into the inputs in the units already chosen */
+  function setTP(Tk, Pb) {
+    const tu = $('Tunit').value, pu = $('Punit').value;
+    $('T').value = +(tu === 'C' ? Tk - 273.15 : Tk).toFixed(2);
+    $('P').value = +(Pb / PF[pu]).toPrecision(5);
+    if (S.mode !== 'TP') setMode('TP'); else update();
+  }
   function showTab(t) {
     S.tab = t;
     document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-    for (const k of ['solve', 'plots', 'challenge', 'about']) $('panel-' + k).hidden = k !== t;
+    for (const k of ['solve', 'ai', 'map', 'plots', 'challenge', 'about']) $('panel-' + k).hidden = k !== t;
+    document.querySelector('.layout').classList.toggle('wide', t === 'ai' || t === 'map');
     if (t === 'plots') drawPlots();
+    if (pm) { if (t === 'map') pm.show(); else pm.hide(); }
     try { history.replaceState(null, '', '#' + t); } catch (e) { /* ignore */ }
   }
 
@@ -1787,7 +3188,8 @@ details.ext[open] summary { margin-bottom: 4px; }
         </dl>
         ${flags.length ? `<div class="flags">${flags.map(x => `<span class="flag ${x[0]}">${x[1]}</span>`).join('')}</div>` : ''}
         <p class="hint" style="margin-top:8px"><b>${esc(T.CLASS_INFO[fl.cls].label)}:</b> ${esc(T.CLASS_INFO[fl.cls].text)}</p>
-      </div><figure class="minimap">${miniMap(fl, d)}<figcaption>Your state (orange dot) on the phase map. Blue line: boiling curve.</figcaption></figure></div>`;
+      </div><figure class="minimap">${miniMap(fl, d)}<figcaption>Your state (orange dot) on the phase map. Blue line: boiling curve.<button type="button" class="pm-open" id="openMap">Open the interactive phase map →</button></figcaption></figure></div>`;
+    $('openMap').addEventListener('click', () => showTab('map'));
   }
 
   /* ---------------- 2 · best answer ---------------- */
@@ -1841,7 +3243,7 @@ details.ext[open] summary { margin-bottom: 4px; }
   function renderWarnings(s) {
     const d = s.diagnosis;
     const items = [];
-    if (d.phase === 'saturation') items.push(['bad', `The state is at the boiling point (P is within ${f(100 * d.satBand, 1)} % of the boiling pressure). Liquid and vapour can both exist, so one volume is not enough: V = (1 − x)·V(liquid) + x·V(vapour), where x is the vapour fraction.`]);
+    if (d.phase === 'saturation') items.push(['bad', `The state is at the boiling point (P is within ${f(100 * d.satBand, 1)} % of the boiling pressure). Liquid and vapour can both exist, so one volume is not enough: V = (1 − x)·V(liquid) + x·V(vapour), where x is the vapour fraction. If you know the volume, switch to “T and V” and the solver works out x.`]);
     if (d.nearCritical) items.push(['bad', 'Near the critical point: Z changes very fast with T and P, every method is least accurate here, and cubic equations give every fluid the same Zc. Treat the numbers as ±several %.']);
     if (d.phase === 'liquid') items.push(['warn', 'Liquid: the ideal gas and the virial equation are not applicable at all — they only describe gases.']);
     const seen = new Set();
@@ -1864,8 +3266,11 @@ details.ext[open] summary { margin-bottom: 4px; }
   function renderTV(tv, Tk, V) {
     const fl = tv.fluid;
     const lk = tv.results.find(r => r.id === 'lk');
-    const twoPhase = lk && lk.twoPhase;
-    const phase = twoPhase ? 'Inside the two-phase region (liquid + vapour)' : lk ? (lk.phase === 'liquid' ? 'Liquid' : tv.Tr >= 1 ? 'Gas / supercritical fluid' : 'Vapour') : '–';
+    // phase from the best boiling-point estimate (Antoine when available); Lee–Kesler's own as a fallback
+    const tp = tv.sat ? tv.twoPhase : (lk && lk.twoPhase ? { Psat: lk.twoPhase.Psat, quality: lk.twoPhase.quality, source: 'Lee–Kesler' } : null);
+    const twoPhase = !!tp;
+    const phase = twoPhase ? 'Inside the two-phase region (liquid + vapour)' : tv.Tr >= 1 ? 'Gas / supercritical fluid'
+      : tv.sat ? (V <= tv.sat.VL ? 'Liquid' : 'Vapour') : lk ? (lk.phase === 'liquid' ? 'Liquid' : 'Vapour') : '–';
     $('stateCard').innerHTML = `<h2><span class="step">1</span> Where is this state?</h2>
       <dl class="kv"><dt>Fluid</dt><dd>${esc(fl.name)} ${fl.formula ? '(' + fl.formula + ')' : ''}</dd>
       <dt>Temperature</dt><dd class="num">${f(Tk, 2)} K (Tr = ${f(tv.Tr, 3)})</dd>
@@ -1876,7 +3281,7 @@ details.ext[open] summary { margin-bottom: 4px; }
       <div class="tablewrap"><table class="methods"><thead><tr><th>Method</th><th class="num">P (bar)</th><th class="num">Z = PV/RT</th><th>Note</th></tr></thead><tbody>
       ${tv.results.map(r => `<tr><td><div class="mname"><span class="sw" style="--c:${COLORS[r.id] || 'var(--ink-3)'}"></span>${esc(r.name)}</div></td><td class="num">${isFinite(r.P) ? g(r.P, 5) : '–'}</td><td class="num">${isFinite(r.Z) ? f(r.Z, 4) : '–'}</td><td class="mreason">${esc(r.note || '')}</td></tr>`).join('')}
       </tbody></table></div>
-      ${twoPhase ? `<div class="callout warn" style="margin-top:10px"><b>This volume is inside the two-phase region.</b> The real pressure is the boiling pressure (${g(lk.twoPhase.Psat, 4)} bar by Lee–Kesler) and the vapour fraction is x = ${f(lk.twoPhase.quality, 3)}. The pressures the cubic equations print at this volume lie on the unphysical loop and must not be reported.</div>` : ''}`;
+      ${twoPhase ? `<div class="callout warn" style="margin-top:10px"><b>This volume is inside the two-phase region, so the fluid is boiling.</b> The real pressure is the boiling pressure, ${g(tp.Psat, 4)} bar (${esc(tp.source)}), and the vapour fraction is <b>x = ${f(tp.quality, 3)}</b>${tp.VL ? `, from V = (1 − x)·V(liquid) + x·V(vapour) with V(liquid) = ${g(tp.VL, 4)} and V(vapour) = ${g(tp.VV, 5)} cm³/mol` : ''}. The pressures the cubic equations print at this volume lie on the unphysical loop and must not be reported.</div>` : ''}`;
     for (const id of ['tableCard', 'warnCard', 'extCard']) $(id).hidden = true;
   }
 
@@ -2093,7 +3498,7 @@ details.ext[open] summary { margin-bottom: 4px; }
         const lkOnly = T.leeKesler(Tk / fl.Tc, Pb / fl.Pc, fl.omega, 'auto');
         return `<h3>Case 8 · One volume at the boiling point — water at 100 °C and 1 atm</h3>
         <div class="vs">${box('naive', 'Typical mistake', `<p>Return a single volume. But at exactly 100 °C and 1 atm water is boiling: it can be <b>liquid (18.8 cm³/mol)</b>, <b>vapour (30 100 cm³/mol)</b> or any mix — a 1600× difference. A second catch: the general vapour-pressure formula puts water’s boiling pressure at 100 °C at ${f(s.diagnosis.PsatLK, 3)} bar (10 % low, because water is polar), so a calculation that relies on it calls the state a liquid and reports ${g(lkOnly.Z * R * Tk / Pb, 3)} cm³/mol.</p>`)}
-        ${box('right', 'Correct answer and why', `<p>The solver uses water’s own Antoine (vapour-pressure) equation: boiling pressure = ${f(s.diagnosis.Psat, 4)} bar, so P/Psat = ${f(s.diagnosis.Pr / s.diagnosis.PsatR, 3)} → <b>“at the boiling point”</b>. It reports both values — vapour Z = ${f(lk.Z, 3)} (steam tables 0.984) and liquid V = ${f(rk.V, 1)} cm³/mol (steam tables 18.8) — and asks for the vapour fraction x: V = (1 − x)·V<sub>liquid</sub> + x·V<sub>vapour</sub>.</p>`)}</div>`;
+        ${box('right', 'Correct answer and why', `<p>The solver uses water’s own Antoine (vapour-pressure) equation: boiling pressure = ${f(s.diagnosis.Psat, 4)} bar, so P/Psat = ${f(s.diagnosis.Pr / s.diagnosis.PsatR, 3)} → <b>“at the boiling point”</b>. It reports both values — vapour Z = ${f(lk.Z, 3)} (steam tables 0.984) and liquid V = ${f(rk.V, 1)} cm³/mol (steam tables 18.8) — and asks for the vapour fraction x: V = (1 − x)·V<sub>liquid</sub> + x·V<sub>vapour</sub>. Given the volume instead (the “T and V” input), it works out x itself: for example, 15 000 cm³/mol gives x = ${f(T.solveTV(fl, Tk, 15000).twoPhase.quality, 2)}.</p>`)}</div>`;
       }
     },
     {
@@ -2128,6 +3533,167 @@ details.ext[open] summary { margin-bottom: 4px; }
     $('scenResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  /* ---------------- AI Check ---------------- */
+  const A = window.AICheck;
+  // example answers, written to show typical mistakes (and one correct answer)
+  const AI_EXAMPLES = [
+    { label: 'Ideal-gas law near the critical point (CO₂)', text: 'To find the density of CO₂ at 40 °C and 80 bar, use the ideal gas law: ρ = PM/RT = (80 × 10⁵ Pa)(0.04401 kg/mol) / (8.314 J/(mol·K) × 313.15 K) ≈ 135 kg/m³.' },
+    { label: 'Ideal gas first, then a chart read by eye (CO₂)', text: 'To estimate the density of CO₂ at 40 °C (313.15 K) and 80 bar, start with the ideal gas law:\nρ = PM/(RT) = (8.0 × 10⁶ Pa × 0.04401 kg/mol) / (8.314 J/(mol·K) × 313.15 K) ≈ 135.2 kg/m³.\nThe critical properties of CO₂ are Tc = 304.13 K and Pc = 73.77 bar, so Tr = 1.03 and Pr = 1.08. From the generalized compressibility chart, Z ≈ 0.55, so ρ = 135.2 / 0.55 ≈ 246 kg/m³.\nAnswer: about 246 kg/m³.' },
+    { label: 'A gas equation used on a liquid (n-butane)', text: 'For n-butane at 300 K and 10 bar, use the virial equation with the Pitzer correlation: B = −721.5 cm³/mol, so Z = 1 + BP/RT = 0.711 and V = ZRT/P ≈ 1,773 cm³/mol.' },
+    { label: 'The middle root of van der Waals (n-butane)', text: 'Using the van der Waals equation for n-butane at 350 K and 9.4573 bar (a = 1.388 × 10⁷ bar·cm⁶/mol², b = 116.4 cm³/mol), the cubic has three real roots: 191 cm³/mol, 335 cm³/mol and 2667 cm³/mol. Taking the middle root, V ≈ 335 cm³/mol.' },
+    { label: 'One number at the boiling point (water)', text: 'At 100 °C and 1 atm, steam behaves almost ideally: v = RT/(PM) = (8.314 × 373.15)/(101325 × 0.018015) ≈ 1.70 m³/kg.' },
+    { label: 'Peng–Robinson on a polar liquid (water)', text: 'Solving the Peng–Robinson cubic for water at 300 °C and 100 bar, the smallest root gives Z = 0.0678, so the liquid molar volume is V ≈ 32.3 cm³/mol (density ≈ 557 kg/m³).' },
+    { label: 'Temperature left in °C (CO₂)', text: 'For CO₂ at 40 °C and 80 bar: V = RT/P = (83.14 × 40)/80 = 41.6 cm³/mol, so the density is about 1,059 kg/m³.' },
+    { label: 'Four decimals at the critical point (CO₂)', text: 'For CO₂ at 305 K and 74 bar, the Peng–Robinson equation gives Z = 0.3949, so V = 135.3 cm³/mol.' },
+    { label: 'A units slip (n-butane)', text: 'For n-butane at 510 K and 25 bar, Z = 0.873, so V = ZRT/P ≈ 1.48 m³/mol.' },
+    { label: 'A correct answer (n-butane)', text: 'For n-butane at 510 K and 25 bar: Tr = 1.20, Pr = 0.66 and ω = 0.200. From the Lee–Kesler tables Z⁰ = 0.865 and Z¹ = 0.038, so Z = 0.865 + 0.200(0.038) = 0.873 and V = ZRT/P ≈ 1,480 cm³/mol.' },
+  ];
+  const TRAP = { 'ideal-highP': 'Case 1 · Ideal gas at high pressure', 'virial-range': 'Case 2 · Virial equation outside its range', roots: 'Case 3 · Three roots of a cubic', critical: 'Case 4 · Near the critical point', polar: 'Case 5 · Polar vs non-polar fluids', 'gas-liquid': 'Case 6 · Gas method used on a liquid', omega: 'Case 7 · Acentric factor', boiling: 'Case 8 · One volume at the boiling point' };
+  const VERDICT = { right: ['✓', 'good', 'Right'], close: ['≈', 'warn', 'Roughly right'], incomplete: ['½', 'warn', 'Half an answer'], wrong: ['✗', 'bad', 'Wrong'] };
+  const AIS = { q: 0, over: null, res: null, pick: null };
+  const prettyRaw = raw => esc(raw).replace(/(\d)e(-?)(\d+)/g, (m, d, sg, e) => d + ' × 10' + (sg ? '⁻' : '') + e.replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c])).replace(/\b(c|d)?m3\b/g, '$1m³');
+  async function copyText(text, btn) {
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+      ta.remove();
+    }
+    if (btn) { const old = btn.textContent; btn.textContent = ok ? 'Copied' : 'Copy failed: select the text'; setTimeout(() => { btn.textContent = old; }, 1600); }
+  }
+  function showQuestion() {
+    const q = A.QUESTIONS[AIS.q % A.QUESTIONS.length];
+    $('aiQuestion').textContent = q.q; $('aiCatch').textContent = q.trap;
+    $('aiCatch').closest('details').open = false;
+  }
+  function buildAI() {
+    const sel = $('aiExample');
+    AI_EXAMPLES.forEach((ex, i) => { const o = document.createElement('option'); o.value = i; o.textContent = ex.label; sel.appendChild(o); });
+    sel.addEventListener('change', () => { if (sel.value === '') return; $('aiText').value = AI_EXAMPLES[+sel.value].text; AIS.over = null; AIS.fromQ = false; runAI(); sel.value = ''; });
+    $('aiCheckBtn').addEventListener('click', () => { AIS.over = null; runAI(); });
+    $('aiText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { AIS.over = null; runAI(); } });
+    $('aiNewQ').addEventListener('click', () => { AIS.q = (AIS.q + 1) % A.QUESTIONS.length; showQuestion(); });
+    $('aiCopyQ').addEventListener('click', e => { AIS.fromQ = true; copyText(A.QUESTIONS[AIS.q].q, e.currentTarget); });
+    showQuestion();
+  }
+  function runAI() {
+    const text = $('aiText').value.trim();
+    if (!text) { $('aiRead').hidden = false; $('aiRead').innerHTML = '<p class="hint">Paste an answer first, or load an example.</p>'; $('aiVerdict').hidden = true; return; }
+    let p = A.parse(text);
+    // a reply to the question on the right often does not repeat the fluid, T or P: take them from the question
+    if (!p.fluidId || !(p.T > 0) || !(p.P > 0)) {
+      const pq = A.parse(A.QUESTIONS[AIS.q].q);
+      if (!p.fluidId && pq.fluidId) { p.fluidId = pq.fluidId; p.fromQuestion = true; }
+      if (!(p.T > 0) && pq.T > 0) { p.T = pq.T; p.Tunit = pq.Tunit; p.Traw = pq.Traw; p.fromQuestion = true; }
+      if (!(p.P > 0) && pq.P > 0) { p.P = pq.P; p.Praw = pq.Praw; p.fromQuestion = true; }
+    }
+    if (AIS.over) Object.assign(p, AIS.over);
+    try {
+      const res = A.check(p);
+      AIS.res = res; AIS.pick = null;
+      renderAIRead(p, res);
+      renderAIVerdict(res);
+    } catch (e) {
+      $('aiVerdict').hidden = true; $('aiRead').hidden = false;
+      $('aiRead').innerHTML = `<div class="callout warn">Could not check this answer (${esc(e.message)}). Try entering the fluid, T and P by hand, or shorten the text to the final answer.</div>`;
+    }
+  }
+  function renderAIRead(p, res) {
+    const opts = T.FLUIDS.map(fl => `<option value="${fl.id}"${fl.id === p.fluidId ? ' selected' : ''}>${esc(fl.name)}${fl.formula ? ' (' + fl.formula + ')' : ''}</option>`).join('');
+    const nums = p.claims.length ? p.claims.map(c => `<span class="ai-num">${prettyRaw(c.raw)}</span>`).join(' ') : '<span class="hint">none found</span>';
+    $('aiRead').hidden = false;
+    $('aiRead').innerHTML = `<h2>What the solver read</h2>
+      <div class="ai-read">
+        <label>Fluid <select id="aiFluid"><option value="">–</option>${opts}</select></label>
+        <label>Temperature <span class="ai-in"><input type="number" step="any" id="aiT" value="${p.T > 0 ? +p.T.toFixed(2) : ''}"> K</span></label>
+        <label>Pressure <span class="ai-in"><input type="number" step="any" id="aiP" value="${p.P > 0 ? +p.P.toFixed(4) : ''}"> bar</span></label>
+      </div>
+      <p class="hint">Numbers to check: ${nums}${p.fromQuestion ? ' · fluid, T or P taken from the test question' : ''}${p.notes && p.notes.length ? ' · ' + esc(p.notes.join(' ')) : ''}. Change anything it read wrongly and the check updates.</p>
+      ${res.ok ? '' : `<div class="callout warn">Could not find ${esc(res.missing.join(', '))}. ${res.missing.includes('a volume, density or Z to check') ? 'The answer needs a number with a unit such as cm³/mol, L/mol, m³/kg, kg/m³ or a value of Z.' : 'Fill it in above.'}</div>`}`;
+    const reread = () => { AIS.over = { fluidId: $('aiFluid').value || null, T: +$('aiT').value || null, P: +$('aiP').value || null }; runAI(); };
+    for (const id of ['aiFluid', 'aiT', 'aiP']) $(id).addEventListener('change', reread);
+  }
+  function renderAIVerdict(res) {
+    const box = $('aiVerdict');
+    if (!res.ok) { box.hidden = true; return; }
+    const c = AIS.pick != null ? res.claims[AIS.pick] : res.final;
+    const d = res.state.diagnosis;
+    const [icon, tone, word] = VERDICT[c.verdict];
+    const phase = { gas: 'Gas (above Tc)', supercritical: 'Supercritical fluid', vapor: 'Vapour', liquid: 'Liquid', saturation: 'At the boiling point' }[d.phase];
+    const rows = res.claims.map((x, i) => {
+      const [ic, tn, wd] = VERDICT[x.verdict];
+      return `<tr class="${x === c ? 'sel' : ''}" data-i="${i}"><td>${prettyRaw(x.raw)}${x === res.final ? ' <span class="hint">(final answer)</span>' : ''}</td><td>${x.top ? esc(x.top.c.label) : x.slip ? 'a units slip' : '–'}</td><td><span class="vpill ${tn}">${ic} ${wd}</span></td></tr>`;
+    }).join('');
+    box.hidden = false;
+    box.className = 'card ai-verdict tone-' + tone;
+    box.innerHTML = `<div class="ai-head"><span class="ai-icon ${tone}" aria-hidden="true">${icon}</span><div><div class="ai-kicker">${c === res.final ? 'The AI’s final answer' : 'One number in the answer'} · ${prettyRaw(c.raw)}</div><h2>${esc(c.headline)}</h2></div></div>
+      <div class="ai-vs">
+        <div><span class="lbl">The AI said</span><b>${prettyRaw(c.raw)}</b></div>
+        <div><span class="lbl">The solver says</span><b>${esc(c.bestText)}</b></div>
+        <div><span class="lbl">The state</span><b>${esc(res.fluid.name)} · ${phase}</b><span class="hint">Tr = ${f(d.Tr, 2)}, Pr = ${f(d.Pr, 2)}${d.Tr < 1 ? `, boils at ${g(d.Psat, 3)} bar` : ''}</span></div>
+      </div>
+      <div class="ai-strip">${aiStrip(res, c)}</div>
+      <p><b>Fingerprint.</b> ${esc(c.fingerprint)}</p>
+      ${c.explain ? `<p><b>Why.</b> ${esc(c.explain)}</p>` : ''}
+      ${c.notes.length ? `<p class="hint">${esc(c.notes.join(' '))}</p>` : ''}
+      <div class="ai-actions">
+        ${c.trap && TRAP[c.trap] ? `<button type="button" class="btn small secondary" id="aiTrap">See ${esc(TRAP[c.trap])}</button>` : ''}
+        <button type="button" class="btn small secondary" id="aiOpen">Open this state in the solver</button>
+      </div>
+      ${res.claims.length > 1 ? `<h3 style="margin-top:14px">Every number in the answer</h3><div class="tablewrap"><table class="mini ai-claims"><thead><tr><th>The AI said</th><th>Came from</th><th>Verdict</th></tr></thead><tbody>${rows}</tbody></table></div><p class="hint">Click a row to see its check.</p>` : ''}
+      <details class="ai-fix"><summary>Send a correction back to the AI</summary><p id="aiFixText">${esc(res.correction)}</p><button type="button" class="btn small" id="aiCopyFix">Copy the correction</button></details>`;
+    if ($('aiTrap')) $('aiTrap').addEventListener('click', () => { showTab('challenge'); runScenario(c.trap); });
+    $('aiOpen').addEventListener('click', () => { setInputs(res.fluid.id, d.T, d.P); showTab('solve'); update(); });
+    $('aiCopyFix').addEventListener('click', e => copyText(res.correction, e.currentTarget));
+    box.querySelectorAll('.ai-claims tbody tr').forEach(tr => tr.addEventListener('click', () => { AIS.pick = +tr.dataset.i; renderAIVerdict(res); }));
+  }
+  // the fingerprint strip: every method's value for this state on one axis, the AI's number marked on it
+  function aiStrip(res, c) {
+    const M = res.fluid.M, Vig = res.Vig;
+    const q = V => A.fromV(V, c, M, Vig);
+    const qa = q(c.V), qb = q(c.bestV);
+    if (!(qa > 0 && qb > 0)) return '';
+    const SH = { ideal: 'Ideal gas', virial2: 'Virial', lk: 'Lee–Kesler', lk0: 'Lee–Kesler without ω', vdw: 'vdW', rk: 'RK', srk: 'SRK', pr: 'PR', rackett: 'Rackett', idealC: 'PV = RT, T in °C' };
+    const short = k => k.key === 'lkOther' ? 'Lee–Kesler ' + k.phaseOf : SH[k.key] || (SH[k.eos] + (k.middle ? ' middle root' : ' ' + k.phaseOf + ' root'));
+    const RANK = ['Lee–Kesler', 'Rackett', 'Ideal gas', 'PR', 'SRK', 'RK', 'vdW', 'Virial'];
+    const rank = n => { const i = RANK.indexOf(n); return i < 0 ? 99 : i; };
+    // draw at the card's real width so the labels stay readable on a phone
+    const W = Math.max(300, Math.min(900, ($('aiVerdict').clientWidth || 800) - 40)), L = 16, Rr = 16, AX = 112;
+    const narrow = W < 560;
+    const keyKeys = new Set(['ideal', 'virial2', 'lk', 'rackett', 'pr', c.top ? c.top.c.key : '']);
+    const lo = Math.min(qa, qb) / 1.7, hi = Math.max(qa, qb) * 1.7;
+    const pts = res.candidates.filter(k => !narrow || keyKeys.has(k.key)).map(k => ({ q: q(k.V), name: short(k) })).filter(p => p.q >= lo && p.q <= hi).sort((a, b) => a.q - b.q);
+    const groups = [];
+    for (const p of pts) { const gp = groups[groups.length - 1]; if (gp && p.q / gp.q0 < 1.03) { gp.names.push(p.name); gp.q1 = p.q; } else groups.push({ q0: p.q, q1: p.q, names: [p.name] }); }
+    groups.forEach(gp => gp.names.sort((a, b) => rank(a) - rank(b)));
+    const X = v => L + (Math.log(v) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)) * (W - L - Rr);
+    const rowY = [92, 72, 52, 32], used = [[], [], [], []];
+    let maxRow = 0;
+    const place = (cx, w) => { let r = 0; while (r < 3 && used[r].some(([a, b]) => cx + w / 2 > a - 6 && cx - w / 2 < b + 6)) r++; used[r].push([cx - w / 2, cx + w / 2]); maxRow = Math.max(maxRow, r); return r; };
+    const clampX = (cx, w) => Math.min(Math.max(cx, L + w / 2 - 18), W - Rr - w / 2 + 18);
+    let s = `<line x1="${L}" y1="${AX}" x2="${W - Rr}" y2="${AX}" class="ax"/>`;
+    const band = c.band || 0.02, x1 = X(Math.max(lo, qb * (1 - band))), x2 = X(Math.min(hi, qb * (1 + band)));
+    s += `<rect x="${x1}" y="${AX - 7}" width="${Math.max(3, x2 - x1)}" height="14" rx="3" class="bandr"/>`;
+    let labels = '';                    // drawn after every tick line, so no line crosses a label
+    for (const gp of groups) {
+      const maxN = narrow ? 2 : 3;
+      const label = gp.names.length > maxN ? gp.names.slice(0, maxN).join(', ') + ' +' + (gp.names.length - maxN) : gp.names.join(', ');
+      const w = label.length * 6.3 + 6, cx = X(Math.sqrt(gp.q0 * gp.q1)), lx = clampX(cx, w), r = place(lx, w);
+      s += `<line x1="${cx}" y1="${AX - 7}" x2="${cx}" y2="${rowY[r] + 4}" class="tk"/>`;
+      labels += `<text x="${lx}" y="${rowY[r]}" class="tl" text-anchor="middle">${esc(label)}<title>${esc(gp.names.join(', '))}: ${A.fmt(gp.q0)} ${esc(A.unitOf(c))}</title></text>`;
+    }
+    s += labels;
+    const xa = X(qa), xb = X(qb);
+    const near = Math.abs(xa - xb) < 150;
+    const tone = VERDICT[c.verdict][1];
+    const lab = (x, y, t, cls) => { const w = t.length * 6.6 + 8; return `<text x="${clampX(x, w)}" y="${y}" class="${cls}" text-anchor="middle">${esc(t)}</text>`; };
+    s += `<path d="M${xa} ${AX + 4} l-7 12 h14 z" class="mk ${tone}"/>` + lab(xa, AX + 32, `AI: ${A.fmt(qa)} ${A.unitOf(c)}`.trim(), 'ml ' + tone);
+    s += `<circle cx="${xb}" cy="${AX}" r="4.5" class="bk"/>` + lab(xb, near ? AX + 50 : AX + 32, `Solver: ${A.fmt(qb)} ${A.unitOf(c)}`.trim(), 'ml good');
+    const y0 = rowY[maxRow] - 16;      // trim the empty label rows above
+    return `<svg viewBox="0 ${y0} ${W} ${(near ? 170 : 152) - y0}" width="${W}" role="img" aria-label="The value each method gives at this state, with the AI's number and the solver's answer marked">${s}</svg>
+      <p class="hint">Every method’s value at this state (${esc(A.QUANTITY[c.kind])}, log scale). Green band: the solver’s answer and its expected accuracy. Triangle: the AI’s number.</p>`;
+  }
+
   /* ---------------- How it works ---------------- */
   function renderAbout() {
     $('aboutCard').innerHTML = `<h2>How the solver works</h2>
@@ -2153,6 +3719,10 @@ details.ext[open] summary { margin-bottom: 4px; }
         <li><b>Near the critical point</b> (0.95 &lt; Tr &lt; 1.1 and 0.7 &lt; Pr &lt; 1.5) every method is marked “use with caution”.</li>
         <li><b>Best answer.</b> Gas or vapour: Lee–Kesler. Liquid: Rackett, checked against Lee–Kesler. For a non-polar liquid that is strongly compressed, or where the two differ by more than 3 % (usually close to Tc), Lee–Kesler is used instead, because it includes the effect of pressure. Polar liquids keep Rackett. The reasons shown with the answer (cross-check, what is ruled out, expected accuracy) are worked out for each state.</li>
       </ul>
+      <h3>Phase map</h3>
+      <p>The Phase map tab plots pressure (log scale) against temperature for the chosen fluid. The boiling curve is the same boiling pressure the solver uses (the fluid’s Antoine equation where it has one, otherwise the Lee–Kesler correlation) and it ends at the critical point. The map starts at the fluid’s triple point (reference data), because below it the solid can form and no method here describes a solid. The green dashed line marks where the ideal gas stops being within 5 % of Lee–Kesler, the blue dotted line where the two-term virial equation stops being within 2 %: the same tests the solver uses to grade those two methods. The hatched box is the near-critical zone. Dragging the state, or moving the sliders, re-runs the full solution at every step; the two sweep buttons heat the fluid at constant pressure or compress it at constant temperature and draw Z along the way, so the jump in Z when the fluid boils, and its absence above the critical point, can be seen directly.</p>
+      <h3>AI Check</h3>
+      <p>AI Check reads an answer as plain text (the fluid, T, P and every volume, density or Z it states, in any common unit). It then works out what <i>every</i> method gives at that state, together with the usual slips: the middle or wrong-phase root of a cubic, a gas equation on a liquid, the ω term left out, T in °C instead of K, a power-of-ten units slip, per-kilogram and per-mole mixed up. The AI's number is matched against all of them, within its own rounding: the closest one is its <b>fingerprint</b>, the method it must have used. The verdict compares the number with the solver's best answer and its expected accuracy, and explains with the thermodynamics why that method does or does not suit the state. At the boiling point a single number is marked as half an answer. Nothing is sent anywhere: the reading is done by pattern rules, not by an AI.</p>
       <h3>How it was checked</h3>
       <div class="tablewrap"><table class="methods checks"><thead><tr><th>Check (volumes in cm³/mol)</th><th class="num">Expected</th><th class="num">Solver</th></tr></thead><tbody>
         <tr><td>n-butane, 350 K, 9.4573 bar — vapour / liquid V by van der Waals (published worked example)</td><td class="num">2667 / 191.0</td><td class="num">2666.9 / 191.0</td></tr>
@@ -2164,6 +3734,8 @@ details.ext[open] summary { margin-bottom: 4px; }
         <tr><td>Reference equations of state (CoolProp), all 28 fluids, 6,785 gas and liquid states — phase found by the solver</td><td class="num">—</td><td class="num">right in every state*</td></tr>
         <tr><td>same states — error in V of the best answer: non-polar fluids (4,913 states)</td><td class="num">—</td><td class="num">median 0.4 %<br>90 % within 1.9 %</td></tr>
         <tr><td>same states — polar and hydrogen-bonding fluids and H₂ (1,872 states)</td><td class="num">—</td><td class="num">median 1.9 %<br>90 % within 9.5 %</td></tr>
+        <tr><td>AI Check: reading units and formats, the fingerprint and the verdict on typical answers (ideal gas, virial on a liquid, middle root, boiling point, °C for K, polar liquid, units slips, false precision)</td><td class="num">38 checks</td><td class="num">all pass</td></tr>
+        <tr><td>Phase map: normal boiling points read off the map (water, n-butane, methane, hydrogen, propane, ammonia), CO₂’s triple-point pressure, and the zone lines falling exactly where the solver’s own grades change</td><td class="num">22 checks</td><td class="num">all pass</td></tr>
       </tbody></table></div>
       <p class="hint">* States within 2 % of the boiling pressure were left out of this check: there the solver reports both phases. The “Expected accuracy” shown with each answer was set from this comparison.</p>
       <h3>Not covered</h3>
@@ -2173,9 +3745,15 @@ details.ext[open] summary { margin-bottom: 4px; }
   }
 
   /* ---------------- start ---------------- */
-  wire(); buildScenarios(); renderAbout();
+  wire(); buildScenarios(); buildAI(); renderAbout();
+  pm = window.PhaseMap.mount($('pmCard'), {
+    state: solverState, setTP,
+    fluidOptions: () => $('fluid').innerHTML, fluidValue: () => $('fluid').value,
+    setFluid: v => { $('fluid').value = v; $('fluid').dispatchEvent(new Event('change')); },
+    openSolve: () => showTab('solve'),
+  });
   const h = (location.hash || '').replace('#', '');
-  if (['solve', 'plots', 'challenge', 'about'].includes(h)) showTab(h);
+  if (['solve', 'ai', 'map', 'plots', 'challenge', 'about'].includes(h)) showTab(h);
   update();
 })();
 
